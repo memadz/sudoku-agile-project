@@ -93,9 +93,9 @@ def main():
     solve_sudoku(sudoku_grid) # Solve the Sudoku grid
     
 
-    # Print the resulting Sudoku grid
-    for row in sudoku_grid:
-        print(row)
+    # Print the resulting Sudoku grid (For debugging)
+    #for row in sudoku_grid:
+    #    print(row)
 
     return sudoku_grid
 
