@@ -1,5 +1,5 @@
 import tkinter as tk
-import SudokoSolverGenerator
+import SudokuSolverGenerator
 
 root = tk.Tk()
 root.title("Sudoku")
@@ -7,7 +7,7 @@ root.geometry("300x400")
 
 GRID_SIZE = 9
 
-sudoku_grid = SudokoSolverGenerator.main()
+sudoku_grid = SudokuSolverGenerator.main()
 
 frame = tk.Frame(root, padx=5, pady=5)
 frame.pack(expand=True)
