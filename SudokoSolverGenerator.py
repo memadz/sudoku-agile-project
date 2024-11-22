@@ -86,3 +86,18 @@ def solved_sudoko():
     sudoku_grid = create_board() # Create an empty Sudoku grid (9x9 grid filled with zeros)
     solve_sudoku(sudoku_grid) # Solve the Sudoku grid
     return sudoku_grid
+
+
+def main():
+    sudoku_grid = create_board() # Create an empty Sudoku grid (9x9 grid filled with zeros)
+    solve_sudoku(sudoku_grid) # Solve the Sudoku grid
+    
+
+    # Print the resulting Sudoku grid
+    for row in sudoku_grid:
+        print(row)
+
+    return sudoku_grid
+
+if __name__ == "__main__":
+    main()
