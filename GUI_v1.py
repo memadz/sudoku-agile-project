@@ -7,7 +7,7 @@ root.geometry("300x400")
 
 GRID_SIZE = 9
 
-sudoku_grid = SudokoSolverGenerator.solved_sudoko()
+sudoku_grid = SudokoSolverGenerator.main()
 
 frame = tk.Frame(root, padx=5, pady=5)
 frame.pack(expand=True)
