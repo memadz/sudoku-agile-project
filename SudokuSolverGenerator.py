@@ -42,7 +42,7 @@ def is_valid(grid, row, col, num):
             if grid[i][j] == num:
                 return False # Return False if the number already exists in the 3x3 subgrid
 
-    return True # Return True if the number doesn't exist in the current 3x3 subgrid, indicating placing the number in the cell is valid
+    return True # Return True only when the number is valid for that cell (when all the conditional statement is not met)
 
 def find_empty_cell(grid):
     # Find an empty cell (0) in the grid
@@ -52,7 +52,7 @@ def find_empty_cell(grid):
 
             if grid[i][j] == 0:
                 return (i, j) # Return the row and column of the empty cell
-            
+
     return None # No empty cells found
 
 def solve_sudoku(grid):
@@ -80,20 +80,13 @@ def solve_sudoku(grid):
             grid[row][col] = 0 # Backtrack if placing the number did not lead to a solution
 
     return False # Return False to trigger backtracking if no number of the randomized list is valid
-
-
-def solved_sudoko():
-    sudoku_grid = create_board() # Create an empty Sudoku grid (9x9 grid filled with zeros)
-    solve_sudoku(sudoku_grid) # Solve the Sudoku grid
-    return sudoku_grid
-
-
+    
 def main():
     sudoku_grid = create_board() # Create an empty Sudoku grid (9x9 grid filled with zeros)
     solve_sudoku(sudoku_grid) # Solve the Sudoku grid
     
-
-    # Print the resulting Sudoku grid (For debugging)
+    # We dont want to print it for the GUI
+    # Print the resulting Sudoku grid
     #for row in sudoku_grid:
     #    print(row)
 
