@@ -118,26 +118,29 @@ def remove_numbers(grid, clues_to_remove):
             else:
                 attempts += 1  # Successfully removed a number
         
-def main():
+def generate_sudoku_puzzle(difficulty):
     sudoku_grid = create_board() # Create an empty Sudoku grid (9x9 grid filled with zeros)
     numbers = generate_random_numbers() # Generate numbers from range 1 to 9 and shuffle them randomly in a list
     solve_sudoku(sudoku_grid, numbers) # Solve the Sudoku grid
 
-    # Print the resulting Sudoku grid
-    for row in sudoku_grid:
-        print(row)
+    TOTAL_CLUES = 81 # A 9x9 Sudoku grid has inherently 81 cells, which each when filled, is called a clue
 
-    # Now remove numbers to create a puzzle
-    clues_to_remove = 81-30 # Adjust this range as needed
-    remove_numbers(sudoku_grid, clues_to_remove)
-
+    # Amount of clues per difficulties (Made up values for now)
     # Easy = 38 clues
     # Normal = 34 clues
     # Hard = 30 clues
+    difficulty_levels = {
+        "Easy": TOTAL_CLUES - 38,
+        "Normal": TOTAL_CLUES - 34,
+        "Hard": TOTAL_CLUES - 30
+    }
 
-    print("\nSudoku Puzzle with Unique Solution:")
-    for row in sudoku_grid:
-        print(row)
+    clues_to_remove = difficulty_levels.get(difficulty)
+    remove_numbers(sudoku_grid, clues_to_remove)
 
+    return sudoku_grid
+
+def main():
+    print("Hello, world?")
 if __name__ == "__main__":
     main() 
