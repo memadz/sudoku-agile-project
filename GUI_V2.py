@@ -1,5 +1,5 @@
 import tkinter as tk 
-import ImplementDifficulties
+import ImplementDifficulties 
 
 root = tk.Tk()
 root.title("Sudoku")
