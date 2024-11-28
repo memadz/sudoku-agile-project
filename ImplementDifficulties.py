@@ -1,5 +1,3 @@
-# Task 1.2.2 Make it so the numbers don't overlap in rows and columns (Following the Sudoku rules)
-
 import random
 
 def create_board():
