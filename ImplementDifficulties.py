@@ -1,5 +1,3 @@
-# Task 1.2.2 Make it so the numbers don't overlap in rows and columns (Following the Sudoku rules)
-
 import random
 
 def create_board():
@@ -119,9 +117,17 @@ def remove_numbers(grid, clues_to_remove):
                 attempts += 1  # Successfully removed a number
         
 def generate_sudoku_puzzle(difficulty):
-    sudoku_grid = create_board() # Create an empty Sudoku grid (9x9 grid filled with zeros)
+    # Create two boards: one for the puzzle (with missing numbers) and one for the solved version.
+    puzzle_grid = create_board() # This board will contain the Sudoku puzzle with hidden numbers.
+    solved_grid = create_board() # This board will contain the fully solved Sudoku puzzle.
+    
     numbers = generate_random_numbers() # Generate numbers from range 1 to 9 and shuffle them randomly in a list
-    solve_sudoku(sudoku_grid, numbers) # Solve the Sudoku grid
+    solve_sudoku(solved_grid, numbers) # Solve the Sudoku grid
+
+    # Copy each element from the solved grid to the puzzle grid
+    for i in range(9):
+        for j in range(9):
+            puzzle_grid[i][j] = solved_grid[i][j]
 
     TOTAL_CLUES = 81 # A 9x9 Sudoku grid has inherently 81 cells, which each when filled, is called a clue
 
@@ -130,15 +136,16 @@ def generate_sudoku_puzzle(difficulty):
     # Normal = 34 clues
     # Hard = 30 clues
     difficulty_levels = {
-        "Easy": TOTAL_CLUES - 38,
-        "Normal": TOTAL_CLUES - 34,
-        "Hard": TOTAL_CLUES - 30
+        "easy": TOTAL_CLUES - 38,
+        "medium": TOTAL_CLUES - 34,
+        "hard": TOTAL_CLUES - 30
     }
 
     clues_to_remove = difficulty_levels.get(difficulty)
-    remove_numbers(sudoku_grid, clues_to_remove)
 
-    return sudoku_grid
+    remove_numbers(puzzle_grid, clues_to_remove)
+
+    return puzzle_grid, solved_grid # Return the puzzle and the fully solved grid.
 
 def main():
     print("Hello, world?")

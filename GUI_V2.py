@@ -28,16 +28,16 @@ def display_sudoku(grid):
 
 # Functions for each difficulty level
 def easy_mode():
-    sudoku_grid = ImplementDifficulties.generate_sudoku_puzzle("Easy")
-    display_sudoku(sudoku_grid)
+    puzzle, solution = ImplementDifficulties.generate_sudoku_puzzle("easy")
+    display_sudoku(puzzle)
 
 def medium_mode():
-    sudoku_grid = ImplementDifficulties.generate_sudoku_puzzle("Normal")
-    display_sudoku(sudoku_grid)
+    puzzle, solution = ImplementDifficulties.generate_sudoku_puzzle("medium")
+    display_sudoku(puzzle)
 
 def hard_mode():
-    sudoku_grid = ImplementDifficulties.generate_sudoku_puzzle("Hard")
-    display_sudoku(sudoku_grid)
+    puzzle, solution = ImplementDifficulties.generate_sudoku_puzzle("hard")
+    display_sudoku(puzzle)
 
 # Create buttons for difficulty levels
 button_frame = tk.Frame(root, pady=10)
