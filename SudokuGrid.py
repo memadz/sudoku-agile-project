@@ -91,11 +91,6 @@ def print_grids():
     for rows in solved_grid:
         print(rows)
 
-    print("Current Entry Widgets")
-    for rows in entry_widgets:
-        print(rows)
-
-
 button_frame = tk.Frame(root, pady=5)
 button_frame.pack()
 
