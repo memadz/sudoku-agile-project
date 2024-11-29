@@ -1,5 +1,4 @@
 import random
-from copy import deepcopy
 
 def create_board():
     # Initialize a 9x9 grid
@@ -118,11 +117,18 @@ def remove_numbers(grid, clues_to_remove):
                 attempts += 1  # Successfully removed a number
         
 def generate_sudoku_puzzle(difficulty):
-    sudoku_grid = create_board() # Create an empty Sudoku grid (9x9 grid filled with zeros)
-    numbers = generate_random_numbers() # Generate numbers from range 1 to 9 and shuffle them randomly in a list
-    solve_sudoku(sudoku_grid, numbers) # Solve the Sudoku grid
-
+    # Create two boards: one for the puzzle (with missing numbers) and one for the solved version.
+    puzzle_grid = create_board() # This board will contain the Sudoku puzzle with hidden numbers.
+    solved_grid = create_board() # This board will contain the fully solved Sudoku puzzle.
     
+    numbers = generate_random_numbers() # Generate numbers from range 1 to 9 and shuffle them randomly in a list
+    solve_sudoku(solved_grid, numbers) # Solve the Sudoku grid
+
+    # Copy each element from the solved grid to the puzzle grid
+    for i in range(9):
+        for j in range(9):
+            puzzle_grid[i][j] = solved_grid[i][j]
+
     TOTAL_CLUES = 81 # A 9x9 Sudoku grid has inherently 81 cells, which each when filled, is called a clue
 
     # Amount of clues per difficulties (Made up values for now)
@@ -134,14 +140,12 @@ def generate_sudoku_puzzle(difficulty):
         "medium": TOTAL_CLUES - 34,
         "hard": TOTAL_CLUES - 30
     }
-    
-    solved_grid = deepcopy(sudoku_grid)
 
     clues_to_remove = difficulty_levels.get(difficulty)
-    remove_numbers(sudoku_grid, clues_to_remove)
 
+    remove_numbers(puzzle_grid, clues_to_remove)
 
-    return sudoku_grid, solved_grid
+    return puzzle_grid, solved_grid # Return the puzzle and the fully solved grid.
 
 def main():
     print("Hello, world?")
