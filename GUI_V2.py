@@ -25,17 +25,23 @@ def input_validator(input):
     else:
         return False
     
+def reset_highlight():
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            entry = entry_widgets[row][col]
+            entry.config(bg="white", fg="black")
+
 #Highlight a cell and all related cells with the same value in its row, column, and 3x3 block.
 def highlight_clash(row, col):
     num = entry_widgets[row][col].get()
 
     for c in range(GRID_SIZE):
         if entry_widgets[row][c].get() == num:
-            entry_widgets[row][c].config(bg="red", fg="black" ,relief='raised')
+            entry_widgets[row][c].config(bg="red", fg="black")
             
     for r in range(GRID_SIZE):
         if entry_widgets[r][col].get() == num:
-            entry_widgets[r][col].config(bg="red", fg="black", relief='raised')
+            entry_widgets[r][col].config(bg="red", fg="black")
 
     start_row = (row // 3) * 3
     start_col = (col // 3) * 3
@@ -48,6 +54,7 @@ def highlight_clash(row, col):
 
 # Validate the inputs based on clashes with rows, columns and the subgrid
 def validate_input():
+    reset_highlight()
     user_board = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 
     for row in range(GRID_SIZE):
