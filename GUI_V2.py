@@ -46,21 +46,58 @@ def insert_numbers(sudoku_grid):
                 entry.config(state="readonly")
 
 insert_numbers(sudoku_grid)
+
+time_label = tk.Label(root, text="00:00", font=("Arial", 12))
+time_label.pack(pady=5)
+
+time_elapsed = 0
+timer_id = None #This is used to controlled the scheduled timer. Keep track of this when pusing/playing timer
+
+def timer(action=None):
+    global time_elapsed, timer_id
+    
+    if action is None:
+        time_elapsed += 1
+        minutes = time_elapsed // 60
+        seconds = time_elapsed % 60
+        formatted_time = f"{minutes:02d}:{seconds:02d}"
+        time_label.config(text=f"{formatted_time}")
+        
+        timer_id = root.after(1000, timer)
+    
+    elif action == "start":
+        time_elapsed = 0
+        time_label.config(text="00:00")
+        if timer_id is not None:
+            root.after_cancel(timer_id)
+        timer_id = root.after(1000, timer)
+    
+    elif action == "stop":
+        if timer_id is not None:
+            root.after_cancel(timer_id)
+            timer_id = None
+
     
 def easy_mode():
     global sudoku_grid, solved_grid
+    timer("stop")
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
     insert_numbers(sudoku_grid)
+    timer("start")
 
 def medium_mode():
     global sudoku_grid, solved_grid
+    timer("stop")
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("medium")
     insert_numbers(sudoku_grid)
+    timer("start")
 
 def hard_mode():
     global sudoku_grid, solved_grid
+    timer("stop")
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("hard")
     insert_numbers(sudoku_grid)
+    timer("start")
 
 def check():
 
