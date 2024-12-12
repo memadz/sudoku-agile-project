@@ -52,9 +52,10 @@ time_label.pack(pady=5)
 
 time_elapsed = 0
 timer_id = None #This is used to controlled the scheduled timer. Keep track of this when pusing/playing timer
+is_paused = False #Variable to track if the timer is paused
 
 def timer(action=None):
-    global time_elapsed, timer_id
+    global time_elapsed, timer_id, is_paused
     
     if action is None:
         time_elapsed += 1
@@ -77,6 +78,21 @@ def timer(action=None):
             root.after_cancel(timer_id)
             timer_id = None
 
+    elif action == "stop":
+        if timer_id is not None:
+            root.after_cancel(timer_id)
+            timer_id = None
+
+    elif action == "pause":
+        if not is_paused:  # Makes sure it is not paused already
+            is_paused = True
+            if timer_id is not None:
+                root.after_cancel(timer_id)  # Stop timer updates
+
+    elif action == "continue":
+        if is_paused:  # Makes sure it is paused
+            is_paused = False
+            timer_id = root.after(1000, timer)  # Resume the updates
     
 def easy_mode():
     global sudoku_grid, solved_grid
@@ -145,5 +161,11 @@ check_button.grid(row=5, column=1, padx=5)
 
 print_button = tk.Button(button_frame, text="Print", command=print_grids)
 print_button.grid(row=20, column=1, padx=5)
+
+pause_button = tk.Button(button_frame, text="Pause", command=lambda: timer("pause")) # lambda is used here to force parameters, if you dont want to use it then you would need two extra functions
+pause_button.grid(row=3, column=0, padx=5)
+
+continue_button = tk.Button(button_frame, text="Continue", command=lambda: timer("continue"))
+continue_button.grid(row=3, column=2, padx=5)
 
 root.mainloop()
