@@ -26,6 +26,58 @@ def input_validator(input):
         return False
 
 
+# Validate the inputs based on clashes with rows, columns and the subgrid
+def validate_input():
+    user_board = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            user_input = entry_widgets[row][col].get()
+            if user_input.isdigit():
+                user_board[row][col] = int(user_input)
+
+    errors_found = False
+
+    for row in range(GRID_SIZE):
+        seen = set()
+        for col in range(GRID_SIZE):
+            num = user_board[row][col]
+            if num != 0:
+                if num in seen:
+                    print(f"Row conflict found at cell ({row+1}, {col+1}) with number {num}")
+                    errors_found = True
+                else:
+                    seen.add(num)
+
+    for col in range(GRID_SIZE):
+        seen = set()
+        for row in range(GRID_SIZE):
+            num = user_board[row][col]
+            if num != 0:
+                if num in seen:
+                    print(f"Column conflict found at cell ({row+1}, {col+1}) with number {num}")
+                    errors_found = True
+                else:
+                    seen.add(num)
+
+    for i in range(0, GRID_SIZE, 3):
+        for j in range(0, GRID_SIZE, 3):
+            seen = set()
+            for row in range(i, i + 3):
+                for col in range(j, j + 3):
+                    num = user_board[row][col]
+                    if num != 0:
+                        if num in seen:
+                            print(f"Subgrid conflict found at cell ({row+1}, {col+1}) with number {num}")
+                            errors_found = True
+                        else:
+                            seen.add(num)
+
+    if not errors_found:
+        print("No conflicts found. The inputs are valid.")
+    else:
+        print("Errors found in the Sudoku inputs.")
+
 validation_command = root.register(input_validator)
 
 sudoku_frame = ttk.Frame (frame, borderwidth=8, relief="ridge", width=800, height=400)
@@ -142,6 +194,9 @@ hard_button.grid(row=0, column=2, padx=5)
 
 check_button = tk.Button(button_frame, text="Check Puzzle", command=check)
 check_button.grid(row=5, column=1, padx=5)
+
+validate_button = tk.Button(button_frame, text="Validate Inputs", command=validate_input)
+validate_button.grid(row=10, column=1, padx=5)
 
 print_button = tk.Button(button_frame, text="Print", command=print_grids)
 print_button.grid(row=20, column=1, padx=5)
