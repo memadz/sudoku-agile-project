@@ -31,18 +31,18 @@ def highlight_clash(row, col):
 
     for c in range(GRID_SIZE):
         if entry_widgets[row][c].get() == num:
-            entry_widgets[row][c].config(bg="red", fg="white")
+            entry_widgets[row][c].config(bg="red", fg="black" ,relief='raised')
             
     for r in range(GRID_SIZE):
         if entry_widgets[r][col].get() == num:
-            entry_widgets[r][col].config(bg="red", fg="white")
+            entry_widgets[r][col].config(bg="red", fg="black", relief='raised')
 
     start_row = (row // 3) * 3
     start_col = (col // 3) * 3
     for r in range(start_row, start_row + 3):
         for c in range(start_col, start_col + 3):
             if entry_widgets[r][c].get() == num:
-                entry_widgets[r][c].config(bg="red", fg="white")
+                entry_widgets[r][c].config(bg="white", fg="red")
 
 
 
@@ -50,16 +50,15 @@ def highlight_clash(row, col):
 def validate_input():
     user_board = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 
-
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
-            entry_widgets[row][col].config(bg="white", fg="black")
             user_input = entry_widgets[row][col].get()
             if user_input.isdigit():
                 user_board[row][col] = int(user_input)
+            if entry_widgets[row][col].cget("bg") == "red":
+                entry_widgets[row][col].config(bg="white", fg="black", relief="raised")
 
     errors_found = False
-
 
     for row in range(GRID_SIZE):
         seen = set()
@@ -71,7 +70,6 @@ def validate_input():
                     errors_found = True
                 else:
                     seen.add(num)
-
 
     for col in range(GRID_SIZE):
         seen = set()
@@ -83,7 +81,6 @@ def validate_input():
                     errors_found = True
                 else:
                     seen.add(num)
-
 
     for i in range(0, GRID_SIZE, 3):
         for j in range(0, GRID_SIZE, 3):
@@ -98,11 +95,11 @@ def validate_input():
                         else:
                             seen.add(num)
 
-
     if not errors_found:
         print("No conflicts found. The inputs are valid.")
     else:
         print("Errors found in the Sudoku inputs.")
+
 
 
 validation_command = root.register(input_validator)
