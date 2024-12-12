@@ -37,11 +37,11 @@ def highlight_clash(row, col):
 
     for c in range(GRID_SIZE):
         if entry_widgets[row][c].get() == num:
-            entry_widgets[row][c].config(bg="red", fg="black")
+            entry_widgets[row][c].config(bg="white", fg="red")
             
     for r in range(GRID_SIZE):
         if entry_widgets[r][col].get() == num:
-            entry_widgets[r][col].config(bg="red", fg="black")
+            entry_widgets[r][col].config(bg="white", fg="red")
 
     start_row = (row // 3) * 3
     start_col = (col // 3) * 3
@@ -62,8 +62,7 @@ def validate_input():
             user_input = entry_widgets[row][col].get()
             if user_input.isdigit():
                 user_board[row][col] = int(user_input)
-            if entry_widgets[row][col].cget("bg") == "red":
-                entry_widgets[row][col].config(bg="white", fg="black", relief="raised")
+
 
     errors_found = False
 
