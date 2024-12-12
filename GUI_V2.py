@@ -24,19 +24,42 @@ def input_validator(input):
         return True
     else:
         return False
+    
+#Highlight a cell and all related cells with the same value in its row, column, and 3x3 block.
+def highlight_clash(row, col):
+    num = entry_widgets[row][col].get()
+
+    for c in range(GRID_SIZE):
+        if entry_widgets[row][c].get() == num:
+            entry_widgets[row][c].config(bg="red", fg="white")
+            
+    for r in range(GRID_SIZE):
+        if entry_widgets[r][col].get() == num:
+            entry_widgets[r][col].config(bg="red", fg="white")
+
+    start_row = (row // 3) * 3
+    start_col = (col // 3) * 3
+    for r in range(start_row, start_row + 3):
+        for c in range(start_col, start_col + 3):
+            if entry_widgets[r][c].get() == num:
+                entry_widgets[r][c].config(bg="red", fg="white")
+
 
 
 # Validate the inputs based on clashes with rows, columns and the subgrid
 def validate_input():
     user_board = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 
+
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
+            entry_widgets[row][col].config(bg="white", fg="black")
             user_input = entry_widgets[row][col].get()
             if user_input.isdigit():
                 user_board[row][col] = int(user_input)
 
     errors_found = False
+
 
     for row in range(GRID_SIZE):
         seen = set()
@@ -44,10 +67,11 @@ def validate_input():
             num = user_board[row][col]
             if num != 0:
                 if num in seen:
-                    print(f"Row conflict found at cell ({row+1}, {col+1}) with number {num}")
+                    highlight_clash(row, col)
                     errors_found = True
                 else:
                     seen.add(num)
+
 
     for col in range(GRID_SIZE):
         seen = set()
@@ -55,10 +79,11 @@ def validate_input():
             num = user_board[row][col]
             if num != 0:
                 if num in seen:
-                    print(f"Column conflict found at cell ({row+1}, {col+1}) with number {num}")
+                    highlight_clash(row, col)
                     errors_found = True
                 else:
                     seen.add(num)
+
 
     for i in range(0, GRID_SIZE, 3):
         for j in range(0, GRID_SIZE, 3):
@@ -68,15 +93,17 @@ def validate_input():
                     num = user_board[row][col]
                     if num != 0:
                         if num in seen:
-                            print(f"Subgrid conflict found at cell ({row+1}, {col+1}) with number {num}")
+                            highlight_clash(row, col)
                             errors_found = True
                         else:
                             seen.add(num)
+
 
     if not errors_found:
         print("No conflicts found. The inputs are valid.")
     else:
         print("Errors found in the Sudoku inputs.")
+
 
 validation_command = root.register(input_validator)
 
