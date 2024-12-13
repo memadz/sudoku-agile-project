@@ -149,7 +149,7 @@ def reset_win_streak():
 
 # Check if the Sudoku puzzle is solved
 def check():
-    global is_solved, time_elapsed, current_win_streak
+    global is_solved, time_elapsed, current_win_streak, is_paused
     current = []
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
@@ -164,6 +164,7 @@ def check():
     if 0 not in current: # If the puzzle is solved
         is_solved = True
         timer("pause") # Stop the timer when the puzzle is solved
+        is_paused = False # Reset it back to False
 
         # Check whether if the player is a guest or a registered user.
         if len(sys.argv) > 1: # If more than one argument (username), the player is a user. Otherwise the player is a guest.
