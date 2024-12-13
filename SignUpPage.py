@@ -36,7 +36,38 @@ def store_inputs():
         status_label.config(text="Password must be at least 8 characters long, include uppercase, lowercase, number, and symbol.", fg="red")
         return
 
-    new_user = {"username": username, "password": password}
+    new_user = {"username": username, 
+                "password": password,
+                "statistics": {
+                    "easy": {
+                        "games_won": 0,
+                        "current_win_streak": 0,
+                        "best_win_streak": 0,
+                        "wins_no_mistakes": 0,
+                        "best_time": 0,
+                        "total_time": 0,
+                        "average_time": 0
+                        },
+                    "medium": {
+                        "games_won": 0,
+                        "current_win_streak": 0,
+                        "best_win_streak": 0,
+                        "wins_no_mistakes": 0,
+                        "best_time": 0,
+                        "total_time": 0,
+                        "average_time": 0
+                        },
+                    "hard": {
+                        "games_won": 0,
+                        "current_win_streak": 0,
+                        "best_win_streak": 0,
+                        "wins_no_mistakes": 0,
+                        "best_time": 0,
+                        "total_time": 0,
+                        "average_time": 0
+                    }
+                }
+    }
 
     try:
         with open("test.json", "r") as f:
