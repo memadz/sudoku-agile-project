@@ -13,21 +13,22 @@ frame.pack(pady=40, padx=40,)
 
 
 def storeInputs():
-
     username = username_field.get()
     password = password_field.get()
     try:
         with open("test.json", "r") as f:
             data = json.load(f)
 
-            for i in range(len(data["users"])):
-                if data["users"][i]["username"] != username or data["users"][i]["password"] != password:
-                    status_label.config(text="Username or password is incorrect.", fg="red")
+            for user in data["users"]:
+                if user["username"] == username and user["password"] == password:
+
+                    root.destroy()
+
+                    # Call loggedinPage.py with the username as an argument
+                    subprocess.run([sys.executable, "loggedinPage.py", username])
 
                 else:
-                    root.destroy()
-                    subprocess.run([sys.executable, "loggedinPage.py"])
-
+                    status_label.config(text="Username or password is incorrect.", fg="red")
             return
 
     except FileNotFoundError:
