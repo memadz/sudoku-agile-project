@@ -257,13 +257,6 @@ def on_click(event):
     # Automatically reapply highlighting on left-click
     highlight_related_cells(row, col)
 
-    # Get the value from the clicked cell
-    user_input = widget.get()
-    
-    # If the cell is not empty, highlight all cells with the same value
-    if user_input and user_input.isdigit():
-        highlight_all_same_value(user_input, row, col) # Pass the value of the clicked cell and its position
-
 # Function to handle highlighting of cells (Only making this a function since on_click and on_input will be using duplicate code otherwise)
 def highlight_related_cells(row, col):
     reset_highlight()  # Clear previous highlights
@@ -311,6 +304,14 @@ def highlight_related_cells(row, col):
             if entry_widgets[r][c]["state"] != "readonly":
                 if entry_widgets[r][c].get() == str(solved_grid[r][c]):
                     entry_widgets[r][c].config(fg="#3d5aac")  # Set text color to blue for correct input
+
+    # Get the value from the clicked cell
+    user_input = widget.get()
+    
+    # If the cell is not empty, highlight all cells with the same value
+    if user_input and user_input.isdigit():
+        highlight_all_same_value(user_input, row, col) # Pass the value of the clicked cell and its position
+
 
 # Function to highlight all cells with the same value
 def highlight_all_same_value(value, row, col):
