@@ -7,6 +7,7 @@ from SaveStatistics import increment_games_won, increment_wins_no_mistakes, upda
 
 # Global variables and constants
 GRID_SIZE = 9
+ALL_FONTS = ("Arial", 20)
 sudoku_grid, solved_grid  = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
 mistake_count = 0
 
@@ -15,6 +16,7 @@ if len(sys.argv) > 1: # Check if there is atleast one command line argument pass
     current_username = sys.argv[1] # Retrieve the username, passed as an argument from loginPage to loggedinPage to GUI_V2
 current_difficulty = "easy" # Default to "easy" when the program starts
 current_win_streak = {"easy": 0, "medium": 0, "hard": 0,}
+correct_inputs = {} # Dictionary to track correct inputs
 
 time_elapsed = 0
 timer_id = None # This is used to controlled the scheduled timer. Keep track of this when pausing/continuing timer
@@ -34,94 +36,82 @@ def input_validator(input):
 
 # Highlight current cell and all clashing cells with the same value in its row, column, and 3x3 block.
 def highlight_clash(row, col):
-    num = entry_widgets[row][col].get()
+    user_input = entry_widgets[row][col].get() # Get the current input from the widget
 
-    for c in range(GRID_SIZE):
-        if entry_widgets[row][c].get() == num:
-            entry_widgets[row][c].config(bg="white", fg="red")
-            
-    for r in range(GRID_SIZE):
-        if entry_widgets[r][col].get() == num:
-            entry_widgets[r][col].config(bg="white", fg="red")
+    # Check the specified row and column
+    for i in range(GRID_SIZE):
+        # Check row
+        if entry_widgets[row][i].get() == user_input:
+            if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
+                entry_widgets[row][i].config(bg="#f7cfd6", fg="red", font=ALL_FONTS) # Configurate the background and foreground to red (different hues for distinction)
+            else:
+                entry_widgets[row][i].config(readonlybackground="#f7cfd6", fg="black", font=ALL_FONTS) # Configurate for read-only cells aswell (foreground is black for distinction)
 
+        # Check column
+        if entry_widgets[i][col].get() == user_input:
+            if entry_widgets[i][col]["state"] != "readonly":
+                entry_widgets[i][col].config(bg="#f7cfd6", fg="red", font=ALL_FONTS)
+            else:
+                entry_widgets[i][col].config(readonlybackground="#f7cfd6", fg="black", font=ALL_FONTS)
+
+    # Check 3x3 block
     start_row = (row // 3) * 3
     start_col = (col // 3) * 3
     for r in range(start_row, start_row + 3):
         for c in range(start_col, start_col + 3):
-            if entry_widgets[r][c].get() == num:
-                entry_widgets[r][c].config(bg="white", fg="red")
+            if entry_widgets[r][c].get() == user_input:
+                if entry_widgets[r][c]["state"] != "readonly":
+                    entry_widgets[r][c].config(bg="#f7cfd6", fg="red", font=ALL_FONTS)
+                else:
+                    entry_widgets[r][c].config(readonlybackground="#f7cfd6", fg="black", font=ALL_FONTS)
 
 def reset_highlight():
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
-            entry = entry_widgets[row][col]
-            entry.config(bg="white", fg="black")
+            if entry_widgets[row][col]["state"] != "readonly":
+                entry_widgets[row][col].config(bg="white", fg="black", font=ALL_FONTS)
+            else:
+                entry_widgets[row][col].config(readonlybackground="white", fg="black", font=ALL_FONTS)
             
-
-
-# Validate the inputs based on clashes with rows, columns and the 3x3 block.
-def validate_input():
-    reset_highlight()
-    user_board = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
-
+    # Reapply highlights for all non-empty, non-readonly cells
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
             user_input = entry_widgets[row][col].get()
-            if user_input.isdigit():
-                user_board[row][col] = int(user_input)
-
-    errors_found = False
-
-    for row in range(GRID_SIZE):
-        seen = set()
-        for col in range(GRID_SIZE):
-            num = user_board[row][col]
-            if num != 0:
-                if num in seen:
-                    highlight_clash(row, col)
-                    errors_found = True
-                else:
-                    seen.add(num)
-
-    for col in range(GRID_SIZE):
-        seen = set()
-        for row in range(GRID_SIZE):
-            num = user_board[row][col]
-            if num != 0:
-                if num in seen:
-                    highlight_clash(row, col)
-                    errors_found = True
-                else:
-                    seen.add(num)
-
-    for i in range(0, GRID_SIZE, 3):
-        for j in range(0, GRID_SIZE, 3):
-            seen = set()
-            for row in range(i, i + 3):
-                for col in range(j, j + 3):
-                    num = user_board[row][col]
-                    if num != 0:
-                        if num in seen:
-                            highlight_clash(row, col)
-                            errors_found = True
-                        else:
-                            seen.add(num)
-
-    if not errors_found:
-        print("No conflicts found. The inputs are valid.")
-    else:
-        print("Errors found in the Sudoku inputs.")
-
-# Check user input against the solved grid
+            if user_input and entry_widgets[row][col]["state"] != "readonly":  # Check if the cell is not empty and not readonly
+                if user_input.isdigit() and int(user_input) != solved_grid[row][col]:
+                    highlight_clash(row, col)  # Call highlight for non-empty, non-readonly cells
+  
+# Check user input for mistakes
 def check_input(row, col):
     global mistake_count
     user_input = entry_widgets[row][col].get()
     
-    # If the input is incorrect, increment the mistake count
-    if user_input.isdigit() and int(user_input) != solved_grid[row][col]:
-        mistake_count += 1
+    # If the input is empty (user has removed input)
+    if not user_input:
+        reset_highlight()  # Clear previous highlights first
+    
+    # Check if the input is a digit and within the valid range
+    if user_input.isdigit() and 1 <= int(user_input) <= 9:
+        # Check if the user input matches the solved grid
+        if int(user_input) != solved_grid[row][col]:
+            highlight_clash(row, col)  # Call the highlight clash function
+            mistake_count += 1  # Increment mistake count by 1
+
+        # Check for duplicates in the same row and column
+        for i in range(GRID_SIZE):
+            if i != col and entry_widgets[row][i].get() == user_input: # Check for duplicates in the same row
+                highlight_clash(row, i)  # Highlight duplicate in the row
         
-    return True
+            if i != row and entry_widgets[i][col].get() == user_input: # Check for duplicates in the same column
+                highlight_clash(i, col)  # Highlight duplicate in the column
+
+        # Check for duplicates in the same 3x3 block
+        start_row = (row // 3) * 3
+        start_col = (col // 3) * 3
+        for r in range(start_row, start_row + 3):
+            for c in range(start_col, start_col + 3):
+                if (r != row or c != col) and entry_widgets[r][c].get() == user_input:
+                    highlight_clash(r, c)  # Highlight duplicate in the block
 
 # Reset mistake count
 def reset_mistake_count():
@@ -182,51 +172,156 @@ def check():
     else:
         return False # The puzzle is not solved yet
     
+def draw_grid():
+    # Create a canvas over the Sudoku frame for drawing lines
+    line_canvas = tk.Canvas(sudoku_frame, width=450, height=450, bg="white", highlightthickness=0)
+    line_canvas.grid(row=0, column=0, rowspan=GRID_SIZE, columnspan=GRID_SIZE)
+    
+    cell_size = 50  # Size of each cell in pixels
+    grid_size_px = cell_size * GRID_SIZE  # Total grid size in pixels
+    line_width = 2 
+
+    # Draw thick lines to separate 3x3 grids
+    for i in range(0, GRID_SIZE + 1):
+        color = "#c0c6d3" # Lightgray color
+        
+        # Horizontal lines
+        line_canvas.create_line(0, i * cell_size, grid_size_px, i * cell_size, width=line_width, fill=color)
+
+        # Vertical lines
+        line_canvas.create_line(i * cell_size, 0, i * cell_size, grid_size_px, width=line_width, fill=color)
+
+    for i in range(0, GRID_SIZE + 1, 3):
+        color = "black" # Black line for distinction of the 3x3's and its in separate loop to ensure black will overlap/overwrite the gray line
+        
+        # Horizontal lines
+        line_canvas.create_line(0, i * cell_size, grid_size_px, i * cell_size, width=line_width, fill=color)
+
+        # Vertical lines
+        line_canvas.create_line(i * cell_size, 0, i * cell_size, grid_size_px, width=line_width, fill=color)
+
 # Insert numbers into the Sudoku grid
 def insert_numbers(sudoku_grid):
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
-            entry = tk.Entry(sudoku_frame, width=2, justify="center", font=("Arial", 14), validate="key", validatecommand=(validation_command, "%P"), relief='raised', borderwidth=5)
-            entry.grid(row=row, column=col, padx=1, pady=1)
-            entry.insert(row, sudoku_grid[row][col])
+            entry = tk.Entry(sudoku_frame, width=2, justify="center", font=ALL_FONTS, validate="key", validatecommand=(validation_command, "%P"), 
+                             relief="flat", borderwidth=2)
+            entry.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
             entry_widgets[row][col] = entry
 
             # If the cell is pre-filled, make it read-only
             if sudoku_grid[row][col] != 0:
                 entry.insert(0, sudoku_grid[row][col])
-                entry.config(state="readonly")  # Make it read-only
+                entry.config(state="readonly", readonlybackground="white", fg="black")  # Make it read-only
             else:
                 entry.filled_cell = False  # Cell is empty initially
-                entry.bind("<KeyRelease>", on_input) # Event will start upon key release during input, and call the on_input helper function.
-
+                entry.bind("<KeyRelease>", on_input) # Bind key release event to call the function "on_input".
+            entry.bind("<Button-1>", on_click)  # Bind mouse left-click event to call the function "on_click".
+                
 # Helper function for input handling
 def on_input(event):
     widget = event.widget
     row, col = widget.grid_info()["row"], widget.grid_info()["column"]
-    
+
     user_input = widget.get()
-    
-    if widget.filled_cell and user_input == "": # If the cell was previously filled (not empty) and is now cleared
-        widget.filled_cell = False  # If the cell is cleared, reset filled_cell
-    
-    if not widget.filled_cell: # If the cell is not filled, proceed to check the input
-        
-        if user_input and user_input.isdigit() and 1 <= int(user_input) <= 9: # If the user entered a value, mark the cell as filled
-            widget.filled_cell = True  # Mark the cell as filled
-        elif user_input == "":
-            widget.filled_cell = False 
+
+    # Check if the input is valid (1-9) or empty
+    if user_input and (user_input.isdigit() and 1 <= int(user_input) <= 9):
+        if not widget.filled_cell:  # If the cell is not filled, mark it as filled
+            widget.filled_cell = True
 
         check_input(row, col)  # Call the check_input function to check for mistakes
-    
-    check() # Automatically check if the puzzle is solved
+
+        # Highlight correct input in blue
+        if user_input == str(solved_grid[row][col]):  # Check if the input is correct
+            widget.config(fg="#3d5aac")  # Set the text color to blue for correct input
+        else:
+            widget.config(fg="red")  # Set to red if incorrect
+
+    elif user_input == "":  # If the input is cleared
+        widget.filled_cell = False  # Reset filled_cell
+
+    # Automatically reapply highlighting on keyboard release
+    highlight_related_cells(row, col)
+
+    # Automatically check if the puzzle is solved
+    check()
 
     if is_solved:
-        print("Congratulations! You have solved the puzzle.")
-        
-    # If the cell is already filled, do nothing and exit the function early
-    else:
-        return  # Exit early, no further action needed
+        print("Congratulations! You have solved the puzzle!")
 
+# Helper function for mouse left-click handling
+def on_click(event):
+    widget = event.widget
+    row, col = widget.grid_info()["row"], widget.grid_info()["column"]
+    
+    # Automatically reapply highlighting on left-click
+    highlight_related_cells(row, col)
+
+    # Get the value from the clicked cell
+    user_input = widget.get()
+    
+    # If the cell is not empty, highlight all cells with the same value
+    if user_input and user_input.isdigit():
+        highlight_all_same_value(user_input, row, col) # Pass the value of the clicked cell and its position
+
+# Function to handle highlighting of cells (Only making this a function since on_click and on_input will be using duplicate code otherwise)
+def highlight_related_cells(row, col):
+    reset_highlight()  # Clear previous highlights
+
+    # Highlight the entire row and column
+    for i in range(GRID_SIZE):
+        # Check row
+        if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
+            if entry_widgets[row][i].cget("bg") != "#f7cfd6":  # If the cell has not been marked as a mistake
+                entry_widgets[row][i].config(bg="#e8ecf4")  # Highlight the background of the cell to blue
+        else:
+            if entry_widgets[row][i].cget("readonlybackground") != "#f7cfd6":
+                entry_widgets[row][i].config(readonlybackground="#e8ecf4")  # Highlight the background of read-only cells aswell
+
+        # Check column
+        if entry_widgets[i][col]["state"] != "readonly":
+            if entry_widgets[i][col].cget("bg") != "#f7cfd6":
+                entry_widgets[i][col].config(bg="#e8ecf4")
+        else:
+            if entry_widgets[i][col].cget("readonlybackground") != "#f7cfd6":
+                entry_widgets[i][col].config(readonlybackground="#e8ecf4")
+
+    # Highlight the 3x3 block
+    start_row = (row // 3) * 3
+    start_col = (col // 3) * 3
+    for r in range(start_row, start_row + 3):
+        for c in range(start_col, start_col + 3):
+            if entry_widgets[r][c]["state"] != "readonly":
+                if entry_widgets[r][c].cget("bg") != "#f7cfd6":
+                    entry_widgets[r][c].config(bg="#e8ecf4")
+            else:
+                if entry_widgets[r][c].cget("readonlybackground") != "#f7cfd6":
+                    entry_widgets[r][c].config(readonlybackground="#e8ecf4")
+
+    # Highlight the clicked cell
+    widget = entry_widgets[row][col]
+    if widget["state"] != "readonly":
+        widget.config(bg="#c1ddf9") # Highlight the cell's background to another distinguishable hue of blue
+    else:
+        widget.config(readonlybackground="#c1ddf9") # Highlight the read-only cell's background aswell
+
+    # Reapply blue foreground for all correct inputs
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
+            if entry_widgets[r][c]["state"] != "readonly":
+                if entry_widgets[r][c].get() == str(solved_grid[r][c]):
+                    entry_widgets[r][c].config(fg="#3d5aac")  # Set text color to blue for correct input
+
+# Function to highlight all cells with the same value
+def highlight_all_same_value(value, row, col):
+    current_position = (row, col)
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            if entry_widgets[row][col].get() == value:
+                if entry_widgets[row][col]["state"] == "readonly" and current_position != (row, col): # If the cell is read-only
+                    entry_widgets[row][col].config(readonlybackground="#c6d7e9") # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
+                
 # Timer functionality
 def timer(action=None):
     global time_elapsed, timer_id, is_paused
@@ -334,7 +429,7 @@ root.geometry("800x800")
 frame = tk.Frame(root)
 frame.pack()
 
-time_label = tk.Label(root, text="00:00", font=("Arial", 12))
+time_label = tk.Label(root, text="00:00", font=ALL_FONTS)
 time_label.pack(pady=5)
 
 sudoku_frame = ttk.Frame (frame, borderwidth=8, relief="ridge", width=800, height=400)
@@ -343,6 +438,7 @@ sudoku_frame.grid()
 entry_widgets = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 
 validation_command = root.register(input_validator)
+draw_grid()
 insert_numbers(sudoku_grid)
     
 # Button frame and setup
@@ -366,14 +462,10 @@ check_button.grid(row=5, column=1, padx=5)
 print_button = tk.Button(button_frame, text="Print", command=print_grids)
 print_button.grid(row=20, column=1, padx=5)
 
-validate_button = tk.Button(button_frame, text="Validate Inputs", command=validate_input)
-validate_button.grid(row=10, column=1, padx=5)
-
 pause_button = tk.Button(button_frame, text="Pause", command=lambda: timer("pause")) # lambda is used here to force parameters, if you dont want to use it then you would need two extra functions
 pause_button.grid(row=3, column=0, padx=5)
 
 continue_button = tk.Button(button_frame, text="Continue", command=lambda: timer("continue"))
 continue_button.grid(row=3, column=2, padx=5)
-
 
 root.mainloop()
