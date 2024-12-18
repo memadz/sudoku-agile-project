@@ -16,7 +16,6 @@ if len(sys.argv) > 1: # Check if there is atleast one command line argument pass
     current_username = sys.argv[1] # Retrieve the username, passed as an argument from loginPage to loggedinPage to GUI_V2
 current_difficulty = "easy" # Default to "easy" when the program starts
 current_win_streak = {"easy": 0, "medium": 0, "hard": 0,}
-correct_inputs = {} # Dictionary to track correct inputs
 
 time_elapsed = 0
 timer_id = None # This is used to controlled the scheduled timer. Keep track of this when pausing/continuing timer
@@ -319,9 +318,11 @@ def highlight_all_same_value(value, row, col):
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
             if entry_widgets[row][col].get() == value:
-                if entry_widgets[row][col]["state"] == "readonly" and current_position != (row, col): # If the cell is read-only
-                    entry_widgets[row][col].config(readonlybackground="#c6d7e9") # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
-                
+                if entry_widgets[row][col]["state"] != "readonly" and current_position != (row, col): # If the cell is not read-only
+                    entry_widgets[row][col].config(bg="#c6d7e9") # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
+                elif entry_widgets[row][col]["state"] == "readonly" and current_position != (row, col): # If the cell is read-only
+                    entry_widgets[row][col].config(readonlybackground="#c6d7e9") # Highlight the cells aswell
+
 # Timer functionality
 def timer(action=None):
     global time_elapsed, timer_id, is_paused
