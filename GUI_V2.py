@@ -123,6 +123,29 @@ def reset_hint_count():
     global hint_count
     hint_count = 0
 
+def give_hint():
+    global hint_count 
+    if hint_count >= 3:
+        print("Out of hints.")
+        return
+    
+    empty_cells = []
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            if entry_widgets[row][col].get() == "":  
+                empty_cells.append((row, col))
+
+    if empty_cells:  
+        random_cell = random.choice(empty_cells)
+        row, col = random_cell
+        correct_value = solved_grid[row][col]
+        entry_widgets[row][col].delete(0, tk.END)
+        entry_widgets[row][col].insert(0, str(correct_value))
+        entry_widgets[row][col].config(state="readonly", readonlybackground="yellow", fg="black", font=ALL_FONTS)
+        hint_count += 1
+    else:
+        print("No empty cells available for hints.")
+
 
 # Reset win streak if conditions are met
 def reset_win_streak():
@@ -475,6 +498,9 @@ print_button.grid(row=20, column=1, padx=5)
 
 pause_button = tk.Button(button_frame, text="Pause", command=lambda: timer("pause")) # lambda is used here to force parameters, if you dont want to use it then you would need two extra functions
 pause_button.grid(row=3, column=0, padx=5)
+
+hint_button = tk.Button(sudoku_frame, text="Hint", command=give_hint)
+hint_button.grid(row=GRID_SIZE, column=0,columnspan=GRID_SIZE,pady=10)
 
 continue_button = tk.Button(button_frame, text="Continue", command=lambda: timer("continue"))
 continue_button.grid(row=3, column=2, padx=5)
