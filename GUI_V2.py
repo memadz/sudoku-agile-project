@@ -1,3 +1,4 @@
+import random
 import tkinter as tk
 from tkinter import ttk
 import SudokuPuzzleGenerator
@@ -10,6 +11,7 @@ GRID_SIZE = 9
 ALL_FONTS = ("Arial", 20)
 sudoku_grid, solved_grid  = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
 mistake_count = 0
+hint_count = 0
 
 current_username = None
 if len(sys.argv) > 1: # Check if there is atleast one command line argument passed
@@ -116,6 +118,35 @@ def check_input(row, col):
 def reset_mistake_count():
     global mistake_count
     mistake_count = 0
+    
+# reset hint count
+def reset_hint_count():
+    global hint_count
+    hint_count = 0
+
+def give_hint():
+    global hint_count 
+    if hint_count >= 3:
+        print("Out of hints.")
+        return
+    
+    empty_cells = []
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            if entry_widgets[row][col].get() == "":  
+                empty_cells.append((row, col))
+
+    if empty_cells:  
+        random_cell = random.choice(empty_cells)
+        row, col = random_cell
+        correct_value = solved_grid[row][col]
+        entry_widgets[row][col].delete(0, tk.END)
+        entry_widgets[row][col].insert(0, str(correct_value))
+        entry_widgets[row][col].config(state="readonly", readonlybackground="yellow", fg="black", font=ALL_FONTS)
+        hint_count += 1
+    else:
+        print("No empty cells available for hints.")
+
 
 # Reset win streak if conditions are met
 def reset_win_streak():
@@ -386,6 +417,7 @@ def easy_mode():
     current_difficulty = "easy" # Set the current difficulty to "easy"
     timer("stop")
     reset_mistake_count() # Reset mistake count
+    reset_hint_count()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -398,6 +430,7 @@ def medium_mode():
     current_difficulty = "medium" # Set the current difficulty to "medium"
     timer("stop")
     reset_mistake_count()  
+    reset_hint_count()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("medium")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -410,6 +443,7 @@ def hard_mode():
     current_difficulty = "hard" # Set the current difficulty to "hard"
     timer("stop")
     reset_mistake_count()
+    reset_hint_count()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("hard")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -468,6 +502,9 @@ print_button.grid(row=20, column=1, padx=5)
 
 pause_button = tk.Button(button_frame, text="Pause", command=lambda: timer("pause")) # lambda is used here to force parameters, if you dont want to use it then you would need two extra functions
 pause_button.grid(row=3, column=0, padx=5)
+
+hint_button = tk.Button(sudoku_frame, text="Hint", command=give_hint)
+hint_button.grid(row=GRID_SIZE, column=0,columnspan=GRID_SIZE,pady=10)
 
 continue_button = tk.Button(button_frame, text="Continue", command=lambda: timer("continue"))
 continue_button.grid(row=3, column=2, padx=5)
