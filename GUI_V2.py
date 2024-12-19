@@ -10,6 +10,7 @@ GRID_SIZE = 9
 ALL_FONTS = ("Arial", 20)
 sudoku_grid, solved_grid  = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
 mistake_count = 0
+hint_count = 0
 
 current_username = None
 if len(sys.argv) > 1: # Check if there is atleast one command line argument passed
@@ -116,6 +117,12 @@ def check_input(row, col):
 def reset_mistake_count():
     global mistake_count
     mistake_count = 0
+    
+# reset hint count
+def reset_hint_count():
+    global hint_count
+    hint_count = 0
+
 
 # Reset win streak if conditions are met
 def reset_win_streak():
