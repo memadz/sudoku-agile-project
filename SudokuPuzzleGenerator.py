@@ -61,20 +61,21 @@ def generate_random_numbers():
     random.shuffle(numbers)
     return numbers
 
-def solve_sudoku(grid, numbers):
+def solve_sudoku(grid):
     empty = find_empty_cell(grid) # Find an empty cell
     if not empty:
         return True # Return True if the puzzle is solved
     
     # Unpack the tuple retrieved from the function find_empty_cell function
     row, col = empty # Assign the first element of the tuple to "row" and the second element to "col"
+    numbers = generate_random_numbers() # Generate new random numbers
 
     for num in numbers: # Try numbers in random order
 
         if is_valid(grid, row, col, num): # Check if placing the number is valid
             grid[row][col] = num # Place the number in the cell
 
-            if solve_sudoku(grid, numbers): # Recursively call the function itself til the Sudoku puzzle is solved
+            if solve_sudoku(grid): # Recursively call the function itself til the Sudoku puzzle is solved
                 return True # Return True if the puzzle is solved
             
             grid[row][col] = 0 # Backtrack if placing the number did not lead to a solution
@@ -121,8 +122,7 @@ def generate_sudoku_puzzle(difficulty):
     puzzle_grid = create_board() # This board will contain the Sudoku puzzle with hidden numbers.
     solved_grid = create_board() # This board will contain the fully solved Sudoku puzzle.
     
-    numbers = generate_random_numbers() # Generate numbers from range 1 to 9 and shuffle them randomly in a list
-    solve_sudoku(solved_grid, numbers) # Solve the Sudoku grid
+    solve_sudoku(solved_grid) # Solve the Sudoku grid
 
     # Copy each element from the solved grid to the puzzle grid
     for i in range(9):
