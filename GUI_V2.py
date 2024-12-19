@@ -319,7 +319,7 @@ def highlight_all_same_value(value, row, col):
     for r in range(GRID_SIZE):
         for c in range(GRID_SIZE):
             if entry_widgets[r][c].get() == value:
-                if entry_widgets[r][c].cget("bg") == "#f7cfd6" or entry_widgets[r][c].cget("readonlybackground") == "#f7cfd6": # If the cell has not been marked a mistake
+                if entry_widgets[r][c].cget("bg") == "#f7cfd6" or entry_widgets[r][c].cget("readonlybackground") == "#f7cfd6": # If the cell has already been marked a mistake
                     continue # Skip if marked as a mistake
                 if entry_widgets[r][c]["state"] != "readonly" and current_position != (r, c): # If the cell is not read-only
                     entry_widgets[r][c].config(bg="#c6d7e9") # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
