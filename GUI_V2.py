@@ -316,13 +316,15 @@ def highlight_related_cells(row, col):
 # Function to highlight all cells with the same value
 def highlight_all_same_value(value, row, col):
     current_position = (row, col)
-    for row in range(GRID_SIZE):
-        for col in range(GRID_SIZE):
-            if entry_widgets[row][col].get() == value:
-                if entry_widgets[row][col]["state"] != "readonly" and current_position != (row, col): # If the cell is not read-only
-                    entry_widgets[row][col].config(bg="#c6d7e9") # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
-                elif entry_widgets[row][col]["state"] == "readonly" and current_position != (row, col): # If the cell is read-only
-                    entry_widgets[row][col].config(readonlybackground="#c6d7e9") # Highlight the cells aswell
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
+            if entry_widgets[r][c].get() == value:
+                if entry_widgets[r][c].cget("bg") == "#f7cfd6" or entry_widgets[r][c].cget("readonlybackground") == "#f7cfd6": # If the cell has not been marked a mistake
+                    continue # Skip if marked as a mistake
+                if entry_widgets[r][c]["state"] != "readonly" and current_position != (r, c): # If the cell is not read-only
+                    entry_widgets[r][c].config(bg="#c6d7e9") # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
+                elif entry_widgets[r][c]["state"] == "readonly" and current_position != (r, c): # If the cell is read-only
+                    entry_widgets[r][c].config(readonlybackground="#c6d7e9") # Highlight the cells aswell
 
 # Timer functionality
 def timer(action=None):
