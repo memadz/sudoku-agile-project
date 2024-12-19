@@ -416,6 +416,7 @@ def easy_mode():
     current_difficulty = "easy" # Set the current difficulty to "easy"
     timer("stop")
     reset_mistake_count() # Reset mistake count
+    reset_hint_count()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -428,6 +429,7 @@ def medium_mode():
     current_difficulty = "medium" # Set the current difficulty to "medium"
     timer("stop")
     reset_mistake_count()  
+    reset_hint_count()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("medium")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -440,6 +442,7 @@ def hard_mode():
     current_difficulty = "hard" # Set the current difficulty to "hard"
     timer("stop")
     reset_mistake_count()
+    reset_hint_count()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("hard")
     insert_numbers(sudoku_grid)
     timer("start")
