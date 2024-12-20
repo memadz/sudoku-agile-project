@@ -1,6 +1,7 @@
 import random
 import tkinter as tk
 from tkinter import ttk
+import tkinter.messagebox as messagebox
 import SudokuPuzzleGenerator
 import sys
 from SaveStatistics import increment_games_won, increment_wins_no_mistakes, update_win_streak, update_times
@@ -24,6 +25,82 @@ timer_id = None # This is used to controlled the scheduled timer. Keep track of 
 
 is_solved = False # Variable to track if the puzzle is solved
 is_paused = False # Variable to track if the timer is paused
+
+
+lives = 3
+life_label = None
+def setup_life_system():
+    global life_label
+    life_label = tk.Label(sudoku_frame, text=f"LIVES : {lives}", font=("Arial", 10), fg="red")
+    life_label.grid(row=GRID_SIZE, sticky='e',column=6,columnspan=GRID_SIZE,pady=10) 
+
+#Pop up box for new game options
+def message_box():
+    popup = tk.Toplevel()
+    popup.title('Game Over')
+
+    # Get the main window dimensions
+
+    window_width = 450
+    window_height = 450
+    screen_width = popup.winfo_screenwidth()
+    screen_height = popup.winfo_screenheight()
+
+    # Calculate position to center the window
+    position_top = int(screen_height / 2 - window_height / 2)
+    position_right = int(screen_width / 2 - window_width / 2)
+
+    # Set the geometry with the calculated position
+    popup.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
+
+    
+    popup.geometry("400x210")
+    #Preventing the close of popup window
+    popup.protocol("WM_DELETE_WINDOW", lambda: None) 
+    #Preventing rhe minimazation of popup window
+    popup.attributes('-toolwindow', True)
+
+
+    popup.resizable(False, False)
+    message_lable = tk.Label(popup, text = 'You ran out of lives! Better Luck Next Time"', font= ("Arial", 12))
+    message_lable.grid(row=0, column= 0, columnspan= 3)
+
+    choice_lable = tk.Label(popup, text = 'Choose Your New Game', font= ("Arial", 14))
+    choice_lable.grid(row=1, column= 0, columnspan= 3)
+
+    # Easy Mode Button
+    easy_button = tk.Button(popup, text="Easy Mode", font=("Arial", 12), command=lambda: [easy_mode(), popup.destroy()])
+    easy_button.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+    # Medium Mode Button
+    medium_button = tk.Button(popup, text="Medium Mode", font=("Arial", 12), command=lambda: [medium_mode(), popup.destroy()])
+    medium_button.grid(row=2, column=1, padx=20, pady=10, sticky="ew")
+
+    # Hard Mode Button
+    hard_button = tk.Button(popup, text="Hard Mode", font=("Arial", 12), command=lambda: [hard_mode(), popup.destroy()])
+    hard_button.grid(row=2, column=2, padx=20, pady=10, sticky="ew")
+
+
+#Life System for players
+def mistake_handler():
+    global lives
+    global life_label
+    #Decrement the life everytime it is called
+    lives -=1
+    if lives >0:
+        life_label.config(text=f" LIVES = {lives}")
+    #If the player is out of life it will pop up a message window
+    elif lives ==0:
+        life_label.config(text=f"")
+        message_box()
+        
+def reset_lives():
+    global lives
+    global life_label
+    #Set back life to 3 whenever it's called
+    lives = 3
+    life_label.config(text=f" LIVES: {lives}")
+
 
 def input_validator(input):
     if input == "":
@@ -95,7 +172,8 @@ def check_input(row, col):
     if user_input.isdigit() and 1 <= int(user_input) <= 9:
         # Check if the user input matches the solved grid
         if int(user_input) != solved_grid[row][col]:
-            highlight_clash(row, col)  # Call the highlight clash function
+            highlight_clash(row, col)
+            mistake_handler()  # Call the highlight clash function
             mistake_count += 1  # Increment mistake count by 1
 
         # Check for duplicates in the same row and column
@@ -418,6 +496,8 @@ def easy_mode():
     timer("stop")
     reset_mistake_count() # Reset mistake count
     reset_hint_count()
+    setup_life_system()
+    reset_lives()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -431,6 +511,8 @@ def medium_mode():
     timer("stop")
     reset_mistake_count()  
     reset_hint_count()
+    setup_life_system()
+    reset_lives()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("medium")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -444,6 +526,8 @@ def hard_mode():
     timer("stop")
     reset_mistake_count()
     reset_hint_count()
+    setup_life_system()
+    reset_lives()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("hard")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -505,6 +589,8 @@ pause_button.grid(row=3, column=0, padx=5)
 
 hint_button = tk.Button(sudoku_frame, text="Hint", command=give_hint)
 hint_button.grid(row=GRID_SIZE, column=0,columnspan=GRID_SIZE,pady=10)
+
+
 
 continue_button = tk.Button(button_frame, text="Continue", command=lambda: timer("continue"))
 continue_button.grid(row=3, column=2, padx=5)
