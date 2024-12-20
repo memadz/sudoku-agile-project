@@ -25,6 +25,62 @@ timer_id = None # This is used to controlled the scheduled timer. Keep track of 
 is_solved = False # Variable to track if the puzzle is solved
 is_paused = False # Variable to track if the timer is paused
 
+
+lives = 3
+life_label = None
+def setup_life_system():
+    global life_label
+    life_label = tk.Label(sudoku_frame, text=f"LIVES : {lives}", font=("Arial", 10), fg="red")
+    life_label.grid(row=GRID_SIZE, sticky='e',column=6,columnspan=GRID_SIZE,pady=10) 
+
+# Pop up box for new game options
+def message_box():
+    root.attributes('-disabled', 1) # Disables the grid from interaction
+    popup_window = tk.Toplevel()
+    popup_window.title("Game Over")
+
+    popup_window.geometry("400x300")
+    popup_window.resizable(False, False)  # Restrict Resize
+
+    popup_window.protocol("WM_DELETE_WINDOW", lambda: True) # Disable delete window
+    popup_window.attributes("-toolwindow", True) # Disable windows tools
+    
+    tk.Label(popup_window, text="You ran out of lives! Better Luck Next Time", font=("Arial", 12)).pack(pady=20)
+    tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
+
+    # Easy Mode Button
+    easy_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [easy_mode(), root.attributes('-disabled', 0), popup_window.destroy()]) # Call easy mode, re-enable the root and destroy the popup in this order.
+    easy_button.pack(padx=20, pady=5)
+
+    # Medium Mode Button
+    medium_button = tk.Button(popup_window, text="Medium Mode", font=("Arial", 12), command=lambda: [medium_mode(), root.attributes('-disabled', 0), popup_window.destroy()])
+    medium_button.pack(padx=20, pady=5)
+
+    # Hard Mode Button
+    hard_button = tk.Button(popup_window, text="Hard Mode", font=("Arial", 12), command=lambda: [hard_mode(), root.attributes('-disabled', 0), popup_window.destroy()])
+    hard_button.pack(padx=20, pady=5)
+
+# Life System for players
+def mistake_handler():
+    global lives
+    global life_label
+    # Decrement the life everytime it is called
+    lives -=1
+    if lives >0:
+        life_label.config(text=f" LIVES = {lives}")
+    # If the player is out of life it will pop up a message window
+    elif lives ==0:
+        life_label.config(text=f"")
+        timer("stop")
+        message_box()
+        
+def reset_lives():
+    global lives
+    global life_label
+    # Set back life to 3 whenever it's called
+    lives = 3
+    life_label.config(text=f" LIVES: {lives}")
+
 def input_validator(input):
     if input == "":
         return True
@@ -33,7 +89,6 @@ def input_validator(input):
         return True
     
     return False
-
 
 # Highlight current cell and all clashing cells with the same value in its row, column, and 3x3 block.
 def highlight_clash(row, col):
@@ -95,7 +150,8 @@ def check_input(row, col):
     if user_input.isdigit() and 1 <= int(user_input) <= 9:
         # Check if the user input matches the solved grid
         if int(user_input) != solved_grid[row][col]:
-            highlight_clash(row, col)  # Call the highlight clash function
+            highlight_clash(row, col)
+            mistake_handler()  # Call the highlight clash function
             mistake_count += 1  # Increment mistake count by 1
 
         # Check for duplicates in the same row and column
@@ -418,6 +474,8 @@ def easy_mode():
     timer("stop")
     reset_mistake_count() # Reset mistake count
     reset_hint_count()
+    setup_life_system()
+    reset_lives()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -431,6 +489,8 @@ def medium_mode():
     timer("stop")
     reset_mistake_count()  
     reset_hint_count()
+    setup_life_system()
+    reset_lives()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("medium")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -444,6 +504,8 @@ def hard_mode():
     timer("stop")
     reset_mistake_count()
     reset_hint_count()
+    setup_life_system()
+    reset_lives()
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle("hard")
     insert_numbers(sudoku_grid)
     timer("start")
@@ -473,11 +535,19 @@ time_label.pack(pady=5)
 sudoku_frame = ttk.Frame (frame, borderwidth=8, relief="ridge", width=800, height=400)
 sudoku_frame.grid()
 
-entry_widgets = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+entry_widgets = []
+for i in range(GRID_SIZE):
+    row = []
+    for j in range(GRID_SIZE):
+        row.append(None)
+    entry_widgets.append(row)
 
+# When the program starts, the puzzle is shown directly. We are calling these functions here immediately for that reason.
 validation_command = root.register(input_validator)
 draw_grid()
 insert_numbers(sudoku_grid)
+setup_life_system()
+timer("start")
     
 # Button frame and setup
 button_frame = tk.Frame(root, pady=5)
