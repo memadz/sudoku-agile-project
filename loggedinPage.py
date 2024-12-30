@@ -26,7 +26,7 @@ def load_user_statistics(username):
 
 def playGame():
     logged_in_window.destroy()
-    subprocess.run([sys.executable, "GUI_V2.py", current_username]) # Pass the current_username as an argument to the GUI_V2 file
+    subprocess.run([sys.executable, "Sudoku.py", current_username]) # Pass the current_username as an argument to the Sudoku file
 
 def settings():
     settings_window = tk.Toplevel(logged_in_window)

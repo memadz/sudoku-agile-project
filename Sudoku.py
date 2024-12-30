@@ -15,7 +15,7 @@ hint_count = 0
 
 current_username = None
 if len(sys.argv) > 1: # Check if there is atleast one command line argument passed
-    current_username = sys.argv[1] # Retrieve the username, passed as an argument from loginPage to loggedinPage to GUI_V2
+    current_username = sys.argv[1] # Retrieve the username, passed as an argument from loginPage to loggedinPage to this file
 current_difficulty = "easy" # Default to "easy" when the program starts
 current_win_streak = {"easy": 0, "medium": 0, "hard": 0,}
 

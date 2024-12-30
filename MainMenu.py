@@ -18,7 +18,7 @@ def mainMenu():
 
     def playSudoku():
         root.destroy()
-        subprocess.run([sys.executable, "GUI_V2.py"])
+        subprocess.run([sys.executable, "Sudoku.py"])
 
     def exitApp():
         root.quit()
