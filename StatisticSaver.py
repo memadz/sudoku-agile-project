@@ -1,6 +1,6 @@
 import json
 
-FILENAME = "test.json"
+FILENAME = "Users.json"
 
 def load_user_statistics(username, current_difficulty):
     try:

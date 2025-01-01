@@ -1,5 +1,7 @@
 import tkinter as tk
 import sys, subprocess
+from Settings import SettingsPage
+
 
 # Main Menu Function
 def MainMenu():
@@ -40,7 +42,7 @@ def MainMenu():
     tk.Button(frame, text="Sign Up", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=open_sign_up_page).grid(row=3, column=0, columnspan=3 ,pady=(10, 10))
     tk.Button(frame, text="Settings", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=open_settings).grid(row=4, column=0, columnspan=3, pady=(10, 10))
     tk.Button(frame, text="Exit", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=exit_app).grid(row=5, column=0, columnspan=3, pady=(10, 10))
-
+    
     root.mainloop()
 
 if __name__ == "__main__":

@@ -2,10 +2,11 @@ import tkinter as tk
 import sys, subprocess
 import json
 
-# Get the username directly from the command line argument
-current_username = sys.argv[1]
 
-def StatisticcPage():
+def StatisticsPage():
+
+    # Get the username directly from the command line argument
+    current_username = sys.argv[1]
 
     def load_user_statistics(username):
         try:
@@ -22,8 +23,6 @@ def StatisticcPage():
         print(f"No matching user is found to {username}")
         return None
     
-
-
     # Start point #
     
     root = tk.Tk()
@@ -77,4 +76,7 @@ def StatisticcPage():
     root.mainloop()
 
 if __name__ == "__main__":
-    StatisticcPage()
+    try:
+        StatisticsPage()
+    except Exception:
+        print("Please run the main program to access the statistics page.")

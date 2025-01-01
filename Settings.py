@@ -2,11 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 import sys, subprocess, json
 
-current_username = None
-if len(sys.argv) > 1:  # Check if there is at least one command line argument passed
-    current_username = sys.argv[1]  # Retrieve the username, passed as an argument from loginPage to loggedinPage to this file
-
 def SettingsPage():
+    current_username = None
+    if len(sys.argv) > 1:  # Check if there is at least one command line argument passed
+        current_username = sys.argv[1]  # Retrieve the username, passed as an argument from loginPage to loggedinPage to this file
 
     # Start point # here because i think its easier to understand control flow
     
@@ -48,9 +47,10 @@ def SettingsPage():
     dropdown_font = tk.StringVar(root)
     dropdown_font.set(current_font)
         
-    def update_theme(event=None):  # Required to accept the event parameter from the dropdown menu.
+    def update_setting(event=None):  # Required to accept the event parameter from the dropdown menu.
         
         print(f"Theme updated to: {dropdown_theme.get()}")
+        print(f"Font updated to: {dropdown_font.get()}")
 
         if current_username == None:  # If the user is a guest, creates new JSON file that keeps it.
             with open("Guest.json", "w") as f:
@@ -68,27 +68,8 @@ def SettingsPage():
             with open("Users.json", "w") as f:
                 json.dump(data, f, indent=4)
     
-    def update_font(event=None):
-        
-        print(f"Font updated to: {dropdown_font.get()}")
 
-        if current_username == None:
-            with open("Guest.json", "w") as f:
-                new_guest = {"theme": dropdown_theme.get(), "font": dropdown_font.get()}
-                json.dump(new_guest, f, indent=4)
-
-        else:
-            with open("Users.json", "r") as f:
-                data = json.load(f)
-
-                for user in data.get("users", []):
-                    if user["username"] == current_username:
-                        user["settings"]["font"] = dropdown_font.get()
-
-            with open("Users.json", "w") as f:
-                json.dump(data, f, indent=4)
-
-    themes = ["Light", "Dark", "Night"]
+    themes = ["Light", "Dark", "Warm", "Dennis"]
     fonts = ["Arial", "Font1", "Font2"]
 
     theme_label = tk.Label(frame, text="Theme:", font=("Arial", 12), bg="white", fg="black")
@@ -96,7 +77,7 @@ def SettingsPage():
 
     theme_dropdown = ttk.Combobox(frame, textvariable=dropdown_theme, values=themes, state="readonly", font=("Arial", 12))
     theme_dropdown.grid(row=2, column=0, columnspan=3, pady=(10, 10))
-    theme_dropdown.bind("<<ComboboxSelected>>", update_theme)
+    theme_dropdown.bind("<<ComboboxSelected>>", update_setting)
 
 
 
@@ -105,7 +86,7 @@ def SettingsPage():
 
     font_dropdown = ttk.Combobox(frame, textvariable=dropdown_font, values=fonts, state="readonly", font=("Arial", 12))
     font_dropdown.grid(row=4, column=0, columnspan=3, pady=(10, 10))
-    font_dropdown.bind("<<ComboboxSelected>>", update_font)
+    font_dropdown.bind("<<ComboboxSelected>>", update_setting)
 
 
     def go_back():

@@ -2,13 +2,12 @@ import random
 import tkinter as tk
 from tkinter import ttk
 import SudokuPuzzleGenerator
-import sys, subprocess
+import sys, subprocess, json
 from StatisticSaver import increment_games_won, increment_wins_no_mistakes, update_win_streak, update_times
 
 def SudokuGame():
     # Global/Nonlocal variables and constants
     GRID_SIZE = 9
-    ALL_FONTS = ("Arial", 20)
     sudoku_grid, solved_grid  = SudokuPuzzleGenerator.generate_sudoku_puzzle("easy")
     mistake_count = 0
     hint_count = 0
@@ -18,6 +17,98 @@ def SudokuGame():
         current_username = sys.argv[1] # Retrieve the username, passed as an argument from loginPage to loggedinPage to this file
     current_difficulty = "easy" # Default to "easy" when the program starts
     current_win_streak = {"easy": 0, "medium": 0, "hard": 0,}
+
+    if current_username == None:    # Declare the theme/font based on the user settings
+        with open("Guest.json", "r") as f:
+            data = json.load(f)
+            theme = data["theme"]
+            font = data["font"]
+    else:
+        with open("Users.json", "r") as f:
+            data = json.load(f)
+            for user in data.get("users", []):
+                if user["username"] == current_username:
+                    theme = user["settings"]["theme"]
+                    font = user["settings"]["font"]
+
+    match theme:
+        case "Light":
+            ROOT_BACKGROUND_COLOR = "#f0f0f0"
+            BACKGROUND_COLOR = "white" # Cell bg
+            FOREGROUND_COLOR = "black" # Text color
+
+            INNER_GRID_LINE_COLOR = "#c0c6d3"
+            OUTER_GRID_LINE_COLOR = "black"
+
+            RELATED_CELLS_COLOR = "#e8ecf4" # Same row/col/3x3 cells
+            RELATED_WRONG_CELLS_COLOR = "#f7cfd6"
+            SELECTED_CELL_COLOR = "#c1ddf9" # The cell currently clicked
+            SAME_VALUE_CELL_COLOR = "#c6d7e9" # Cells with the same VALUE as the selected cell
+
+            CORRECT_INPUT_COLOR = "#3d5aac" # If correct input
+            WRONG_INPUT_COLOR = "#f80310" # If wrong input
+            HINT_CELL_COLOR = "#c1ddf9" # Hint cell color
+
+        case "Dark":
+            ROOT_BACKGROUND_COLOR = "#16151b"
+            BACKGROUND_COLOR = "#25242c"
+            FOREGROUND_COLOR = "#838c9b"
+
+            INNER_GRID_LINE_COLOR = "#1e1e22"
+            OUTER_GRID_LINE_COLOR = "#000000"
+
+            RELATED_CELLS_COLOR = "#16151b"
+            RELATED_WRONG_CELLS_COLOR = "#6b000a"
+            SELECTED_CELL_COLOR = "#003c7b"
+            SAME_VALUE_CELL_COLOR = "#000000"
+
+            CORRECT_INPUT_COLOR = "#6a8fc6"
+            WRONG_INPUT_COLOR = "#e90039"
+            HINT_CELL_COLOR = "#003c7b"
+
+        case "Warm":
+            ROOT_BACKGROUND_COLOR = "#f3ead9"
+            BACKGROUND_COLOR = "#f3ead9"
+            FOREGROUND_COLOR = "#5a4f48"
+
+            INNER_GRID_LINE_COLOR = "#c8c5c0"
+            OUTER_GRID_LINE_COLOR = "#403933"
+
+            RELATED_CELLS_COLOR = "#ebdbc1"
+            RELATED_WRONG_CELLS_COLOR = "#ffccd5"
+            SELECTED_CELL_COLOR = "#b2dffe"
+            SAME_VALUE_CELL_COLOR = "#d7c4a6"
+
+            CORRECT_INPUT_COLOR = "#0e47a1"
+            WRONG_INPUT_COLOR = "#e90039"
+            HINT_CELL_COLOR = "#b2dffe"
+
+        case "Dennis":
+            ROOT_BACKGROUND_COLOR = "#1f1f1f"
+            BACKGROUND_COLOR = "#28292f"
+            FOREGROUND_COLOR = "#bfbfbf"
+
+            INNER_GRID_LINE_COLOR = "#3a3a3a"
+            OUTER_GRID_LINE_COLOR = "#bfbfbf"
+
+            RELATED_CELLS_COLOR = "#3a425f"
+            RELATED_WRONG_CELLS_COLOR = "#402429"
+            SELECTED_CELL_COLOR = "#24293b"
+            SAME_VALUE_CELL_COLOR = "#2c3247"
+
+            CORRECT_INPUT_COLOR = "#79b1ff"
+            WRONG_INPUT_COLOR = "#910109"
+            HINT_CELL_COLOR = "#24293b" 
+    
+    match font:
+        case "Arial":
+            ALL_FONTS = ("Arial", 20)
+        case "Font1":
+            pass
+        case "Font2":
+            pass
+
+    ALL_FONTS = ("Arial", 20) # <- remove when the match cases are implemented
 
     time_elapsed = 0
     timer_id = None # This is used to controlled the scheduled timer. Keep track of this when pausing/continuing timer
@@ -31,7 +122,7 @@ def SudokuGame():
     
     def setup_life_system():
         nonlocal life_label
-        life_label = tk.Label(sudoku_frame, text=f"LIVES : {lives}", font=("Arial", 10), fg="red")
+        life_label = tk.Label(main_frame, text=f"LIVES : {lives}", font=("Arial", 10), bg=ROOT_BACKGROUND_COLOR, fg="red")
         life_label.grid(row=GRID_SIZE, sticky='e', column=6, columnspan=GRID_SIZE, pady=10) 
 
     # Pop up box for new game options
@@ -100,16 +191,16 @@ def SudokuGame():
             # Check row
             if entry_widgets[row][i].get() == user_input:
                 if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
-                    entry_widgets[row][i].config(bg="#f7cfd6", fg="red", font=ALL_FONTS) # Configurate the background and foreground to red (different hues for distinction)
+                    entry_widgets[row][i].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS) # Configurate the background and foreground to red (different hues for distinction)
                 else:
-                    entry_widgets[row][i].config(readonlybackground="#f7cfd6", fg="black", font=ALL_FONTS) # Configurate for read-only cells aswell (foreground is black for distinction)
+                    entry_widgets[row][i].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS) # Configurate for read-only cells aswell (foreground is black for distinction)
 
             # Check column
             if entry_widgets[i][col].get() == user_input:
                 if entry_widgets[i][col]["state"] != "readonly":
-                    entry_widgets[i][col].config(bg="#f7cfd6", fg="red", font=ALL_FONTS)
+                    entry_widgets[i][col].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS)
                 else:
-                    entry_widgets[i][col].config(readonlybackground="#f7cfd6", fg="black", font=ALL_FONTS)
+                    entry_widgets[i][col].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
 
         # Check 3x3 block
         start_row = (row // 3) * 3
@@ -118,17 +209,17 @@ def SudokuGame():
             for c in range(start_col, start_col + 3):
                 if entry_widgets[r][c].get() == user_input:
                     if entry_widgets[r][c]["state"] != "readonly":
-                        entry_widgets[r][c].config(bg="#f7cfd6", fg="red", font=ALL_FONTS)
+                        entry_widgets[r][c].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS)
                     else:
-                        entry_widgets[r][c].config(readonlybackground="#f7cfd6", fg="black", font=ALL_FONTS)
+                        entry_widgets[r][c].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
 
     def reset_highlight():
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
                 if entry_widgets[row][col]["state"] != "readonly":
-                    entry_widgets[row][col].config(bg="white", fg="black", font=ALL_FONTS)
+                    entry_widgets[row][col].config(bg=BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
                 else:
-                    entry_widgets[row][col].config(readonlybackground="white", fg="black", font=ALL_FONTS)
+                    entry_widgets[row][col].config(readonlybackground=BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
                 
         # Reapply highlights for all non-empty, non-readonly cells
         for row in range(GRID_SIZE):
@@ -199,7 +290,7 @@ def SudokuGame():
             correct_value = solved_grid[row][col]
             entry_widgets[row][col].delete(0, tk.END)
             entry_widgets[row][col].insert(0, str(correct_value))
-            entry_widgets[row][col].config(state="readonly", readonlybackground="yellow", fg="black", font=ALL_FONTS)
+            entry_widgets[row][col].config(state="readonly", readonlybackground=HINT_CELL_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
             hint_count += 1
         else:
             print("No empty cells available for hints.")
@@ -261,7 +352,7 @@ def SudokuGame():
         
     def draw_grid():
         # Create a canvas over the Sudoku frame for drawing lines
-        line_canvas = tk.Canvas(sudoku_frame, width=450, height=450, bg="white", highlightthickness=0)
+        line_canvas = tk.Canvas(main_frame, width=450, height=450, bg="white", highlightthickness=0)
         line_canvas.grid(row=0, column=0, rowspan=GRID_SIZE, columnspan=GRID_SIZE)
         
         cell_size = 50  # Size of each cell in pixels
@@ -270,36 +361,32 @@ def SudokuGame():
 
         # Draw thick lines to separate 3x3 grids
         for i in range(0, GRID_SIZE + 1):
-            color = "#c0c6d3" # Lightgray color
-            
             # Horizontal lines
-            line_canvas.create_line(0, i * cell_size, grid_size_px, i * cell_size, width=line_width, fill=color)
+            line_canvas.create_line(0, i * cell_size, grid_size_px, i * cell_size, width=line_width, fill=INNER_GRID_LINE_COLOR)
 
             # Vertical lines
-            line_canvas.create_line(i * cell_size, 0, i * cell_size, grid_size_px, width=line_width, fill=color)
+            line_canvas.create_line(i * cell_size, 0, i * cell_size, grid_size_px, width=line_width, fill=INNER_GRID_LINE_COLOR)
 
-        for i in range(0, GRID_SIZE + 1, 3):
-            color = "black" # Black line for distinction of the 3x3's and its in separate loop to ensure black will overlap/overwrite the gray line
-            
+        for i in range(0, GRID_SIZE + 1, 3): # Line for distinction of the 3x3's and its in separate loop to ensure it to overlap/overwrite the gray line
             # Horizontal lines
-            line_canvas.create_line(0, i * cell_size, grid_size_px, i * cell_size, width=line_width, fill=color)
+            line_canvas.create_line(0, i * cell_size, grid_size_px, i * cell_size, width=line_width, fill=OUTER_GRID_LINE_COLOR)
 
             # Vertical lines
-            line_canvas.create_line(i * cell_size, 0, i * cell_size, grid_size_px, width=line_width, fill=color)
+            line_canvas.create_line(i * cell_size, 0, i * cell_size, grid_size_px, width=line_width, fill=OUTER_GRID_LINE_COLOR)
 
     # Insert numbers into the Sudoku grid
     def insert_numbers(sudoku_grid):
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
-                entry = tk.Entry(sudoku_frame, width=2, justify="center", font=ALL_FONTS, validate="key", validatecommand=(validation_command, "%P"), 
-                                relief="flat", borderwidth=2)
+                entry = tk.Entry(main_frame, width=2, justify="center", font=ALL_FONTS, bg=BACKGROUND_COLOR, fg=FOREGROUND_COLOR,
+                                validate="key", validatecommand=(validation_command, "%P"), relief="flat", borderwidth=2)
                 entry.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
                 entry_widgets[row][col] = entry
 
                 # If the cell is pre-filled, make it read-only
                 if sudoku_grid[row][col] != 0:
                     entry.insert(0, sudoku_grid[row][col])
-                    entry.config(state="readonly", readonlybackground="white", fg="black")  # Make it read-only
+                    entry.config(state="readonly", readonlybackground=BACKGROUND_COLOR, fg=FOREGROUND_COLOR)  # Make it read-only
                 else:
                     entry.filled_cell = False  # Cell is empty initially
                     entry.bind("<KeyRelease>", on_input) # Bind key release event to call the function "on_input".
@@ -353,19 +440,19 @@ def SudokuGame():
         for i in range(GRID_SIZE):
             # Check row
             if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
-                if entry_widgets[row][i].cget("bg") != "#f7cfd6":  # If the cell has not been marked as a mistake
-                    entry_widgets[row][i].config(bg="#e8ecf4")  # Highlight the background of the cell to blue
+                if entry_widgets[row][i].cget("bg") != RELATED_WRONG_CELLS_COLOR:  # If the cell has not been marked as a mistake
+                    entry_widgets[row][i].config(bg=RELATED_CELLS_COLOR)  # Highlight the background of the cell to blue
             else:
-                if entry_widgets[row][i].cget("readonlybackground") != "#f7cfd6":
-                    entry_widgets[row][i].config(readonlybackground="#e8ecf4")  # Highlight the background of read-only cells aswell
+                if entry_widgets[row][i].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
+                    entry_widgets[row][i].config(readonlybackground=RELATED_CELLS_COLOR)  # Highlight the background of read-only cells aswell
 
             # Check column
             if entry_widgets[i][col]["state"] != "readonly":
-                if entry_widgets[i][col].cget("bg") != "#f7cfd6":
-                    entry_widgets[i][col].config(bg="#e8ecf4")
+                if entry_widgets[i][col].cget("bg") != RELATED_WRONG_CELLS_COLOR:
+                    entry_widgets[i][col].config(bg=RELATED_CELLS_COLOR)
             else:
-                if entry_widgets[i][col].cget("readonlybackground") != "#f7cfd6":
-                    entry_widgets[i][col].config(readonlybackground="#e8ecf4")
+                if entry_widgets[i][col].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
+                    entry_widgets[i][col].config(readonlybackground=RELATED_CELLS_COLOR)
 
         # Highlight the 3x3 block
         start_row = (row // 3) * 3
@@ -373,25 +460,25 @@ def SudokuGame():
         for r in range(start_row, start_row + 3):
             for c in range(start_col, start_col + 3):
                 if entry_widgets[r][c]["state"] != "readonly":
-                    if entry_widgets[r][c].cget("bg") != "#f7cfd6":
-                        entry_widgets[r][c].config(bg="#e8ecf4")
+                    if entry_widgets[r][c].cget("bg") != RELATED_WRONG_CELLS_COLOR:
+                        entry_widgets[r][c].config(bg=RELATED_CELLS_COLOR)
                 else:
-                    if entry_widgets[r][c].cget("readonlybackground") != "#f7cfd6":
-                        entry_widgets[r][c].config(readonlybackground="#e8ecf4")
+                    if entry_widgets[r][c].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
+                        entry_widgets[r][c].config(readonlybackground=RELATED_CELLS_COLOR)
 
         # Highlight the clicked cell
         widget = entry_widgets[row][col]
         if widget["state"] != "readonly":
-            widget.config(bg="#c1ddf9") # Highlight the cell's background to another distinguishable hue of blue
+            widget.config(bg=SELECTED_CELL_COLOR) # Highlight the cell's background to another distinguishable hue of blue
         else:
-            widget.config(readonlybackground="#c1ddf9") # Highlight the read-only cell's background aswell
+            widget.config(readonlybackground=SELECTED_CELL_COLOR) # Highlight the read-only cell's background aswell
 
         # Reapply blue foreground for all correct inputs
         for r in range(GRID_SIZE):
             for c in range(GRID_SIZE):
                 if entry_widgets[r][c]["state"] != "readonly":
                     if entry_widgets[r][c].get() == str(solved_grid[r][c]):
-                        entry_widgets[r][c].config(fg="#3d5aac")  # Set text color to blue for correct input
+                        entry_widgets[r][c].config(fg=CORRECT_INPUT_COLOR)  # Set text color to blue for correct input
 
         # Get the value from the clicked cell
         user_input = widget.get()
@@ -407,12 +494,12 @@ def SudokuGame():
         for r in range(GRID_SIZE):
             for c in range(GRID_SIZE):
                 if entry_widgets[r][c].get() == value:
-                    if entry_widgets[r][c].cget("bg") == "#f7cfd6" or entry_widgets[r][c].cget("readonlybackground") == "#f7cfd6": # If the cell has already been marked a mistake
+                    if entry_widgets[r][c].cget("bg") == RELATED_WRONG_CELLS_COLOR or entry_widgets[r][c].cget("readonlybackground") == RELATED_WRONG_CELLS_COLOR: # If the cell has already been marked a mistake
                         continue # Skip if marked as a mistake
                     if entry_widgets[r][c]["state"] != "readonly" and current_position != (r, c): # If the cell is not read-only
-                        entry_widgets[r][c].config(bg="#c6d7e9") # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
+                        entry_widgets[r][c].config(bg=SAME_VALUE_CELL_COLOR) # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
                     elif entry_widgets[r][c]["state"] == "readonly" and current_position != (r, c): # If the cell is read-only
-                        entry_widgets[r][c].config(readonlybackground="#c6d7e9") # Highlight the cells aswell
+                        entry_widgets[r][c].config(readonlybackground=SAME_VALUE_CELL_COLOR) # Highlight the cells aswell
 
     # Timer functionality
     def timer(action=None):
@@ -503,16 +590,14 @@ def SudokuGame():
 
     root = tk.Tk()
     root.title("Sudoku")
-    root.geometry("800x800")
+    root.geometry("900x700")
+    root.config(bg=ROOT_BACKGROUND_COLOR)
 
-    frame = tk.Frame(root)
-    frame.pack()
+    main_frame = tk.Frame(root, bg=ROOT_BACKGROUND_COLOR)
+    main_frame.pack()
 
-    time_label = tk.Label(root, text="00:00", font=ALL_FONTS)
-    time_label.pack(pady=5)
-
-    sudoku_frame = ttk.Frame (frame, borderwidth=8, relief="ridge", width=800, height=400)
-    sudoku_frame.grid()
+    time_label = tk.Label(main_frame, text="00:00", bg=ROOT_BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
+    time_label.grid(row=GRID_SIZE + 1, column=0, columnspan=GRID_SIZE)
 
     entry_widgets = []
     for i in range(GRID_SIZE):
@@ -527,39 +612,22 @@ def SudokuGame():
     insert_numbers(sudoku_grid)
     setup_life_system()
     timer("start")
-        
-    # Button frame and setup
-    button_frame = tk.Frame(root, pady=5)
-    button_frame.pack()
 
-    # Difficulty buttons
-    easy_button = tk.Button(button_frame, text="Easy", command=lambda: change_mode("easy")) # Lambda is used to pass parameters. More functions are needed without it.
-    easy_button.grid(row=0, column=0, padx=5)
+    button_frame = tk.Frame(main_frame, bg=ROOT_BACKGROUND_COLOR)
+    button_frame.grid(row=GRID_SIZE + 2, column=0, columnspan=GRID_SIZE)
 
-    medium_button = tk.Button(button_frame, text="Medium", command=lambda: change_mode("medium"))
-    medium_button.grid(row=0, column=1, padx=5)
+    style = ttk.Style()
+    style.configure("TButton", background=ROOT_BACKGROUND_COLOR, foreground="black")
 
-    hard_button = tk.Button(button_frame, text="Hard", command=lambda: change_mode("hard"))
-    hard_button.grid(row=0, column=2, padx=5)
+    ttk.Button(button_frame, text="Easy", style = "TButton", command=lambda: change_mode("easy")).grid(row=0, column=0, padx=5)
+    ttk.Button(button_frame, text="Medium", style = "TButton", command=lambda: change_mode("medium")).grid(row=0, column=1, padx=5)
+    ttk.Button(button_frame, text="Hard", style = "TButton", command=lambda: change_mode("hard")).grid(row=0, column=2, padx=5)
+    ttk.Button(button_frame, text="Pause", style = "TButton", command=lambda: timer("pause")).grid(row=1, column=0, padx=5)
+    ttk.Button(button_frame, text="Continue", style = "TButton", command=lambda: timer("continue")).grid(row=1, column=1, padx=5)
+    ttk.Button(button_frame, text="Back", style = "TButton", command=go_back).grid(row=1, column=2, padx=5)
+    ttk.Button(button_frame, text="Hint", style = "TButton", command=give_hint).grid(row=2, column=1, padx=5)
+    ttk.Button(button_frame, text="Print", style = "TButton", command=print_grids).grid(row=3, column=1, padx=5)
 
-    # Other functionality buttons
-    check_button = tk.Button(button_frame, text="Check Puzzle", command=check)
-    check_button.grid(row=5, column=1, padx=5)
-
-    print_button = tk.Button(button_frame, text="Print", command=print_grids)
-    print_button.grid(row=6, column=1, padx=5)
-
-    pause_button = tk.Button(button_frame, text="Pause", command=lambda: timer("pause"))
-    pause_button.grid(row=3, column=0, padx=5)
-
-    hint_button = tk.Button(sudoku_frame, text="Hint", command=give_hint)
-    hint_button.grid(row=GRID_SIZE, column=0,columnspan=GRID_SIZE,pady=10)
-
-    continue_button = tk.Button(button_frame, text="Continue", command=lambda: timer("continue"))
-    continue_button.grid(row=3, column=2, padx=5)
-
-    back_button = tk.Button(button_frame, text="Back", command=go_back)
-    back_button.grid(row=7, column=1, padx=5)
 
     root.mainloop()
 

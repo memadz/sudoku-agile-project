@@ -2,25 +2,12 @@ import tkinter as tk
 import sys, subprocess
 import json
 
-# Get the username directly from the command line argument
-current_username = sys.argv[1]
 
 
 def LoggedInMenu():
-    def load_user_statistics(username):
-        try:
-            with open("Users.json", "r") as f:
-                data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            print(f"Error loading file: {e}")
-            return None
 
-        for user in data.get("users", []): # Use .get() to avoid KeyError. If key not found, iterate over an empty list.
-            if user["username"] == username:
-                return user["statistics"] # Retrieve and return the user's statistics for all difficulties
-            
-        print(f"No matching user is found to {username}")
-        return None
+    # Get the username directly from the command line argument
+    current_username = sys.argv[1]
 
     def open_sudoku_game():
         root.destroy()
@@ -62,4 +49,7 @@ def LoggedInMenu():
     root.mainloop()
 
 if __name__ == "__main__":
-    LoggedInMenu()
+    try:
+        LoggedInMenu()
+    except Exception:
+        print("Please run the main program to access the logged in page.")
