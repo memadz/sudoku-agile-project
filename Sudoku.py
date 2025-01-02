@@ -83,7 +83,7 @@ def SudokuGame():
             WRONG_INPUT_COLOR = "#e90039"
             HINT_CELL_COLOR = "#b2dffe"
 
-        case "Dennis":
+        case "Dark 2":
             ROOT_BACKGROUND_COLOR = "#1f1f1f"
             BACKGROUND_COLOR = "#28292f"
             FOREGROUND_COLOR = "#bfbfbf"
@@ -99,16 +99,21 @@ def SudokuGame():
             CORRECT_INPUT_COLOR = "#79b1ff"
             WRONG_INPUT_COLOR = "#910109"
             HINT_CELL_COLOR = "#24293b" 
-    
+
     match font:
         case "Arial":
             ALL_FONTS = ("Arial", 20)
-        case "Font1":
-            pass
-        case "Font2":
-            pass
+        case "NoteWorthy":
+            ALL_FONTS = ("NoteWorthy", 20)
+        case "Times New Roman":
+            ALL_FONTS = ("Times New Roman", 20)
+        case "Courier New":
+            ALL_FONTS = ("Courier New", 20)
+        case "Verdana":
+            ALL_FONTS = ("Verdana", 20)
+        case _:
+            ALL_FONTS = ("Arial", 20)  
 
-    ALL_FONTS = ("Arial", 20) # <- remove when the match cases are implemented
 
     time_elapsed = 0
     timer_id = None # This is used to controlled the scheduled timer. Keep track of this when pausing/continuing timer
