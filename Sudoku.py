@@ -31,9 +31,10 @@ def SudokuGame():
                     if user["username"] == current_username:
                         theme = user["settings"]["theme"]
                         font = user["settings"]["font"]
-    except FileNotFoundError:
-    theme = "Light"
-    font = "Arial"
+
+    except FileNotFoundError: # If there are no files, default theme is set.
+        theme = "Light"
+        font = "Arial"
     
     match theme:
         case "Light":
@@ -115,7 +116,6 @@ def SudokuGame():
             ALL_FONTS = ("Courier New", 20)
         case "Verdana":
             ALL_FONTS = ("Verdana", 20)
-
 
 
     time_elapsed = 0
