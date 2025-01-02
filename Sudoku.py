@@ -18,19 +18,23 @@ def SudokuGame():
     current_difficulty = "easy" # Default to "easy" when the program starts
     current_win_streak = {"easy": 0, "medium": 0, "hard": 0,}
 
-    if current_username == None:    # Declare the theme/font based on the user settings
-        with open("Guest.json", "r") as f:
-            data = json.load(f)
-            theme = data["theme"]
-            font = data["font"]
-    else:
-        with open("Users.json", "r") as f:
-            data = json.load(f)
-            for user in data.get("users", []):
-                if user["username"] == current_username:
-                    theme = user["settings"]["theme"]
-                    font = user["settings"]["font"]
-
+    try:
+        if current_username == None:    # Declare the theme/font based on the user settings
+            with open("Guest.json", "r") as f:
+                data = json.load(f)
+                theme = data["theme"]
+                font = data["font"]
+        else:
+            with open("Users.json", "r") as f:
+                data = json.load(f)
+                for user in data.get("users", []):
+                    if user["username"] == current_username:
+                        theme = user["settings"]["theme"]
+                        font = user["settings"]["font"]
+    except FileNotFoundError:
+    theme = "Light"
+    font = "Arial"
+    
     match theme:
         case "Light":
             ROOT_BACKGROUND_COLOR = "#f0f0f0"
@@ -83,7 +87,7 @@ def SudokuGame():
             WRONG_INPUT_COLOR = "#e90039"
             HINT_CELL_COLOR = "#b2dffe"
 
-        case "Dark 2":
+        case "Dennis":
             ROOT_BACKGROUND_COLOR = "#1f1f1f"
             BACKGROUND_COLOR = "#28292f"
             FOREGROUND_COLOR = "#bfbfbf"
@@ -111,8 +115,7 @@ def SudokuGame():
             ALL_FONTS = ("Courier New", 20)
         case "Verdana":
             ALL_FONTS = ("Verdana", 20)
-        case _:
-            ALL_FONTS = ("Arial", 20)  
+
 
 
     time_elapsed = 0
