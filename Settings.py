@@ -64,14 +64,14 @@ def SettingsPage():
                 for user in data.get("users", []):  # Use .get() to avoid KeyError. If key not found, iterate over an empty list.
                     if user["username"] == current_username:
                         user["settings"]["theme"] = dropdown_theme.get()
+                        user["settings"]["font"] = dropdown_font.get()
 
             with open("Users.json", "w") as f:
                 json.dump(data, f, indent=4)
     
 
-    themes = ["Light", "Dark", "Warm", "Dennis"]
-    fonts = ["Arial", "Font1", "Font2"]
-
+    themes = ["Light", "Dark", "Warm", "Dark 2"]
+    fonts = ["NoteWorthy","Arial", "Times New Roman", "Courier New", "Verdana"]
     theme_label = tk.Label(frame, text="Theme:", font=("Arial", 12), bg="white", fg="black")
     theme_label.grid(row=1, column=0, columnspan=3, pady=(10, 10))
 
