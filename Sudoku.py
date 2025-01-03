@@ -46,7 +46,7 @@ def SudokuGame():
     sound_hint.set_volume(0.3)
 
     try:
-        if current_username == None:    # Declare the theme/font based on the user settings
+        if current_username == None: # Declare the theme/font based on the user settings
             with open("Guest.json", "r") as f:
                 data = json.load(f)
                 theme = data["theme"]
@@ -469,8 +469,8 @@ def SudokuGame():
                 # Check if the annotation already exists
                 if user_input in widget.annotations:
                     # Remove the annotation
-                    widget.annotations[user_input].destroy()
-                    del widget.annotations[user_input]
+                    widget.annotations[user_input].destroy() # Destroy the label
+                    del widget.annotations[user_input] # Remove the annotation from the dictionary
                 else:
                     # Create a label for the annotation
                     annotation_label = tk.Label(widget, text=user_input, font=("Arial", 8), fg="#707c8b", bg=widget.cget("bg"), state=tk.NORMAL)
@@ -757,8 +757,6 @@ def SudokuGame():
     ttk.Button(button_frame, text="Hint", style = "TButton", command=give_hint).grid(row=2, column=1, padx=5)
     ttk.Button(button_frame, text="Print", style = "TButton", command=print_grids).grid(row=3, column=1, padx=5)
     ttk.Button(button_frame, text="Note", style = "TButton", command=toggle_annotation_mode).grid(row=3, column=2, padx=5)
-
-    sound_background.play(loops=-1) # Play the background music in a loop
 
     root.mainloop()
 
