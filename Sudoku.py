@@ -1,8 +1,7 @@
-import random
 import tkinter as tk
 from tkinter import ttk
 import SudokuPuzzleGenerator
-import sys, subprocess, json
+import random, sys, subprocess, json, pygame
 from StatisticSaver import increment_games_won, increment_wins_no_mistakes, update_win_streak, update_times
 
 def SudokuGame():
@@ -12,14 +11,42 @@ def SudokuGame():
     mistake_count = 0
     hint_count = 0
 
-    current_username = None
-    if len(sys.argv) > 1: # Check if there is atleast one command line argument passed
+    current_username = None # Default to None when the program starts
+    if len(sys.argv) > 1: # Check if there is atleast one command line argument passed to this file
         current_username = sys.argv[1] # Retrieve the username, passed as an argument from loginPage to loggedinPage to this file
     current_difficulty = "easy" # Default to "easy" when the program starts
-    current_win_streak = {"easy": 0, "medium": 0, "hard": 0,}
+    current_win_streak = {"easy": 0, "medium": 0, "hard": 0,} # Default win streaks for each difficulty
+
+    annotation_mode = False # Variable to track if annotation mode is enabled
+
+    time_elapsed = 0 # Variable to track the time elapsed in seconds
+    timer_id = None # This is used to controlled the scheduled timer. Keep track of this when pausing/continuing timer
+
+    is_solved = False # Variable to track if the puzzle is solved
+    is_paused = False # Variable to track if the timer is paused
+
+    lives = 3 # Life system for players
+    life_label = None # Label to display the life count
+
+    # Initialize pygame mixer for sound effects
+    pygame.mixer.init()
+
+    sound_background = pygame.mixer.Sound('SFX/background_game_music.wav')
+    sound_game_over = pygame.mixer.Sound('SFX/fail_new_game.wav')
+    sound_game_over.set_volume(0.5)
+    sound_disable = pygame.mixer.Sound('SFX\disable_sound.wav')
+    sound_enable = pygame.mixer.Sound('SFX\enable_sound.wav')
+    sound_game_start = pygame.mixer.Sound('SFX/new_game_start.wav')
+    sound_correct_input = pygame.mixer.Sound('SFX/correct_input_1.wav')
+    sound_correct_input.set_volume(0.3)
+    sound_incorrect_input = pygame.mixer.Sound('SFX/wrong_input.wav')
+    sound_incorrect_input.set_volume(0.3)
+    sound_game_completed = pygame.mixer.Sound('SFX/game_completed.wav')
+    sound_hint = pygame.mixer.Sound('SFX/hint_sound.wav')
+    sound_hint.set_volume(0.3)
 
     try:
-        if current_username == None:    # Declare the theme/font based on the user settings
+        if current_username == None: # Declare the theme/font based on the user settings
             with open("Guest.json", "r") as f:
                 data = json.load(f)
                 theme = data["theme"]
@@ -116,18 +143,28 @@ def SudokuGame():
             ALL_FONTS = ("Courier New", 20)
         case "Verdana":
             ALL_FONTS = ("Verdana", 20)
-
-
-    time_elapsed = 0
-    timer_id = None # This is used to controlled the scheduled timer. Keep track of this when pausing/continuing timer
-
-    is_solved = False # Variable to track if the puzzle is solved
-    is_paused = False # Variable to track if the timer is paused
-
-
-    lives = 3
-    life_label = None
     
+    # Function to toggle annotation mode
+    def toggle_annotation_mode():
+        nonlocal annotation_mode
+
+        # Locate the "Note" button
+        for widget in button_frame.winfo_children():
+            if isinstance(widget, ttk.Button) and widget.cget("text") == "Note":
+                toggle_annotation_button = widget
+                break  # Found the "Note" button, exit the loop
+
+        # Toggle the annotation mode
+        annotation_mode = not annotation_mode # True if False, False if True
+
+        if annotation_mode:
+            toggle_annotation_button.state(["pressed"])  # ON
+            sound_enable.play(maxtime=2000)
+        else:
+            toggle_annotation_button.state(["!pressed"])  # OFF
+            sound_disable.play(maxtime=2000)
+    
+    # Life System for players
     def setup_life_system():
         nonlocal life_label
         life_label = tk.Label(main_frame, text=f"LIVES : {lives}", font=("Arial", 10), bg=ROOT_BACKGROUND_COLOR, fg="red")
@@ -165,12 +202,13 @@ def SudokuGame():
         nonlocal lives
         nonlocal life_label
         # Decrement the life everytime it is called
-        lives -=1
-        if lives >0:
+        lives -= 1
+        if lives > 0:
             life_label.config(text=f" LIVES = {lives}")
         # If the player is out of life it will pop up a message window
         elif lives ==0:
             life_label.config(text=f"")
+            sound_game_over.play(maxtime=3000)
             timer("stop")
             message_box()
             
@@ -185,8 +223,13 @@ def SudokuGame():
         if input == "":
             return True
         
-        if input.isdigit() and 1 <= int(input) <= 9 and len(input) == 1:
-            return True
+        if annotation_mode: # If in annotation mode
+            if input.isdigit() and 1 <= int(input) <= 9:
+                return True
+
+        else: # Regular input mode
+            if input.isdigit() and 1 <= int(input) <= 9 and len(input) == 1:
+                return True
         
         return False
 
@@ -251,8 +294,11 @@ def SudokuGame():
             # Check if the user input matches the solved grid
             if int(user_input) != solved_grid[row][col]:
                 highlight_clash(row, col)
+                sound_incorrect_input.play(maxtime=2000)
                 mistake_handler()  # Call the highlight clash function
                 mistake_count += 1  # Increment mistake count by 1
+            else:
+                sound_correct_input.play(maxtime=2000)
 
             # Check for duplicates in the same row and column
             for i in range(GRID_SIZE):
@@ -275,15 +321,17 @@ def SudokuGame():
         nonlocal mistake_count
         mistake_count = 0
         
-    # reset hint count
+    # Reset hint count
     def reset_hint_count():
         nonlocal hint_count
         hint_count = 0
 
+    # Give hint to the player
     def give_hint():
         nonlocal hint_count 
         if hint_count >= 3:
             print("Out of hints.")
+            sound_incorrect_input.play(maxtime=2000)
             return
         
         empty_cells = []
@@ -300,9 +348,9 @@ def SudokuGame():
             entry_widgets[row][col].insert(0, str(correct_value))
             entry_widgets[row][col].config(state="readonly", readonlybackground=HINT_CELL_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
             hint_count += 1
+            sound_hint.play(maxtime=3000)
         else:
             print("No empty cells available for hints.")
-
 
     # Reset win streak if conditions are met
     def reset_win_streak():
@@ -335,6 +383,7 @@ def SudokuGame():
                 
         if 0 not in current: # If the puzzle is solved
             is_solved = True
+            sound_game_completed.play(fade_ms=2000)
             timer("pause") # Stop the timer when the puzzle is solved
 
             # Check whether if the player is a guest or a registered user.
@@ -358,6 +407,7 @@ def SudokuGame():
         else:
             return False # The puzzle is not solved yet
         
+    # Function to draw the canvas for the Sudoku grid    
     def draw_grid():
         # Create a canvas over the Sudoku frame for drawing lines
         line_canvas = tk.Canvas(main_frame, width=450, height=450, bg="white", highlightthickness=0)
@@ -407,38 +457,104 @@ def SudokuGame():
 
         user_input = widget.get()
 
-        # Check if the input is valid (1-9) or empty
-        if user_input and (user_input.isdigit() and 1 <= int(user_input) <= 9):
-            if not widget.filled_cell:  # If the cell is not filled, mark it as filled
-                widget.filled_cell = True
+        if annotation_mode:  # If in annotation mode
+            if user_input and user_input.isdigit() and 1 <= int(user_input) <= 9:
+                widget.delete(0, tk.END) # Clear the main input
+                widget.config(font=("Arial", 8), fg="#707c8b")  # Change font and color for annotation
 
-            check_input(row, col)  # Call the check_input function to check for mistakes
+                # Initialize annotations dictionary if it doesn't exist
+                if not hasattr(widget, "annotations"):
+                    widget.annotations = {}
 
-            # Highlight correct input in blue
-            if user_input == str(solved_grid[row][col]):  # Check if the input is correct
-                widget.config(fg="#3d5aac")  # Set the text color to blue for correct input
-            else:
-                widget.config(fg="red")  # Set to red if incorrect
+                # Check if the annotation already exists
+                if user_input in widget.annotations:
+                    # Remove the annotation
+                    widget.annotations[user_input].destroy() # Destroy the label
+                    del widget.annotations[user_input] # Remove the annotation from the dictionary
+                else:
+                    # Create a label for the annotation
+                    annotation_label = tk.Label(widget, text=user_input, font=("Arial", 8), fg="#707c8b", bg=widget.cget("bg"), state=tk.NORMAL)
 
-        elif user_input == "":  # If the input is cleared
-            widget.filled_cell = False  # Reset filled_cell
+                    # Position the annotation label to cover specific portions of the cell
+                    match user_input:
+                        case "1":
+                            annotation_label.place(relx=0, rely=0, relwidth=0.33, relheight=0.33, anchor="nw")
+                        case "2":
+                            annotation_label.place(relx=0.5, rely=0, relwidth=0.33, relheight=0.33, anchor="n")
+                        case "3":
+                            annotation_label.place(relx=1, rely=0, relwidth=0.33, relheight=0.33, anchor="ne")
+                        case "4":
+                            annotation_label.place(relx=0, rely=0.5, relwidth=0.33, relheight=0.33, anchor="w")
+                        case "5":
+                            annotation_label.place(relx=0.5, rely=0.5, relwidth=0.33, relheight=0.33, anchor="center")
+                        case "6":
+                            annotation_label.place(relx=1, rely=0.5, relwidth=0.33, relheight=0.33, anchor="e")
+                        case "7":
+                            annotation_label.place(relx=0, rely=1, relwidth=0.33, relheight=0.33, anchor="sw")
+                        case "8":
+                            annotation_label.place(relx=0.5, rely=1, relwidth=0.33, relheight=0.33, anchor="s")
+                        case "9":
+                            annotation_label.place(relx=1, rely=1, relwidth=0.33, relheight=0.33, anchor="se")
 
-        # Automatically reapply highlighting on keyboard release
-        highlight_related_cells(row, col)
+                    # Bind the label click to set focus on the Entry widget
+                    annotation_label.bind("<Button-1>", lambda e: (on_click(event), widget.focus_set()))
 
-        # Automatically check if the puzzle is solved
-        check()
+                    # Automatically reapply highlighting on keyboard release
+                    highlight_related_cells(row, col)
 
-        if is_solved:
-            print("Congratulations! You have solved the puzzle!")
+                    # Store the annotation label
+                    widget.annotations[user_input] = annotation_label
+                
+        else: # Regular input mode
+            # Clear annotations if they exist
+            if hasattr(widget, "annotations"):
+                for label in widget.annotations.values():
+                    label.destroy()
+                widget.annotations.clear() # Clear the annotations dictionary for the entry widget
+                
+            # Check if the input is valid (1-9) or empty
+            if user_input and (user_input.isdigit() and 1 <= int(user_input) <= 9):
+                if not widget.filled_cell:  # If the cell is not filled, mark it as filled
+                    widget.filled_cell = True
+
+                check_input(row, col)  # Call the check_input function to check for mistakes
+
+                # Highlight correct input in blue
+                if user_input == str(solved_grid[row][col]):  # Check if the input is correct
+                    widget.config(fg="#3d5aac")  # Set the text color to blue for correct input
+                else:
+                    widget.config(fg="red")  # Set to red if incorrect
+
+            elif user_input == "":  # If the input is cleared
+                widget.filled_cell = False  # Reset filled_cell
+
+            # Automatically reapply highlighting on keyboard release
+            highlight_related_cells(row, col)
+
+            # Automatically check if the puzzle is solved
+            check()
+
+            if is_solved:
+                print("Congratulations! You have solved the puzzle!")
 
     # Helper function for mouse left-click handling
     def on_click(event):
         widget = event.widget
         row, col = widget.grid_info()["row"], widget.grid_info()["column"]
-        
+
         # Automatically reapply highlighting on left-click
         highlight_related_cells(row, col)
+
+        # Update the background color of the existing annotation labels
+        for row_widgets in entry_widgets: # Iterate through each row of entry widgets (list of lists)
+            for entry_widget in row_widgets: # Iterate through each entry widget in the row (element of the list)
+                if hasattr(entry_widget, "annotations"):
+                    entry_bg_color = entry_widget.cget("bg")  # Get the background color of the Entry widget the label belongs to
+                    for label in entry_widget.annotations.values():
+                        try:
+                            label.config(bg=entry_bg_color)
+                        except tk.TclError: # Handle the case where the label no longer exists
+                            pass
 
     # Function to handle highlighting of cells (Only making this a function since on_click and on_input will be using duplicate code otherwise)
     def highlight_related_cells(row, col):
@@ -495,7 +611,6 @@ def SudokuGame():
         if user_input and user_input.isdigit():
             highlight_all_same_value(user_input, row, col) # Pass the value of the clicked cell and its position
 
-
     # Function to highlight all cells with the same value
     def highlight_all_same_value(value, row, col):
         current_position = (row, col)
@@ -535,6 +650,7 @@ def SudokuGame():
                 timer_id = None
 
         elif action == "pause":
+            sound_enable.play(maxtime=2000)
             if not is_paused:  # Makes sure it is not paused already
                 is_paused = True
                 hide_puzzle("hide")
@@ -542,6 +658,7 @@ def SudokuGame():
                     root.after_cancel(timer_id)  # Stop timer updates
 
         elif action == "continue":
+            sound_disable.play(maxtime=2000)
             if is_paused:  # Makes sure it is paused
                 is_paused = False
                 hide_puzzle("show")
@@ -564,6 +681,7 @@ def SudokuGame():
     # Game modes
     def change_mode(mode):
         nonlocal sudoku_grid, solved_grid, current_difficulty, is_solved
+        sound_game_start.play(maxtime=3000)
         reset_win_streak() # Reset win streak if not solved puzzle
         is_solved = False # Reset the state of the puzzle to not solved
         current_difficulty = mode # Set the global variable to the current mode
@@ -586,6 +704,7 @@ def SudokuGame():
         for rows in solved_grid:
             print(rows)
 
+    # Function to go back to the designated menu
     def go_back():
         if current_username == None:
             root.destroy()
@@ -594,8 +713,7 @@ def SudokuGame():
             root.destroy()
             subprocess.run([sys.executable, "LoggedInMenu.py", current_username])
 
-    # Start point #
-
+    # Start point of the game
     root = tk.Tk()
     root.title("Sudoku")
     root.geometry("900x700")
@@ -626,6 +744,9 @@ def SudokuGame():
 
     style = ttk.Style()
     style.configure("TButton", background=ROOT_BACKGROUND_COLOR, foreground="black")
+    style.map("TButton",
+          background=[("pressed", ROOT_BACKGROUND_COLOR)],
+          foreground=[("pressed", "black")])
 
     ttk.Button(button_frame, text="Easy", style = "TButton", command=lambda: change_mode("easy")).grid(row=0, column=0, padx=5)
     ttk.Button(button_frame, text="Medium", style = "TButton", command=lambda: change_mode("medium")).grid(row=0, column=1, padx=5)
@@ -635,9 +756,10 @@ def SudokuGame():
     ttk.Button(button_frame, text="Back", style = "TButton", command=go_back).grid(row=1, column=2, padx=5)
     ttk.Button(button_frame, text="Hint", style = "TButton", command=give_hint).grid(row=2, column=1, padx=5)
     ttk.Button(button_frame, text="Print", style = "TButton", command=print_grids).grid(row=3, column=1, padx=5)
-
+    ttk.Button(button_frame, text="Note", style = "TButton", command=toggle_annotation_mode).grid(row=3, column=2, padx=5)
 
     root.mainloop()
 
 if __name__ == "__main__":
     SudokuGame()
+    
