@@ -33,7 +33,9 @@ def SignUpPage():
                     },
                     "statistics": {
                         "easy": {
+                            "games_started": 0,
                             "games_won": 0,
+                            "win_rate": 0,
                             "current_win_streak": 0,
                             "best_win_streak": 0,
                             "wins_no_mistakes": 0,
@@ -42,7 +44,9 @@ def SignUpPage():
                             "average_time": 0
                             },
                         "medium": {
+                            "games_started": 0,
                             "games_won": 0,
+                            "win_rate": 0,
                             "current_win_streak": 0,
                             "best_win_streak": 0,
                             "wins_no_mistakes": 0,
@@ -51,7 +55,9 @@ def SignUpPage():
                             "average_time": 0
                             },
                         "hard": {
+                            "games_started": 0,
                             "games_won": 0,
+                            "win_rate": 0,
                             "current_win_streak": 0,
                             "best_win_streak": 0,
                             "wins_no_mistakes": 0,
@@ -99,10 +105,13 @@ def SignUpPage():
     def toggle_verify_password():
         toggle_password_visibility(verify_password_field, verify_password_toggle_button)
 
-
     def open_login_page():
         root.destroy()
         subprocess.run([sys.executable, "LoginPage.py"])
+
+    def go_back():
+        root.destroy()
+        subprocess.run([sys.executable, "MainMenu.py"])
 
     # Start point #
 
@@ -122,14 +131,11 @@ def SignUpPage():
     title_label = tk.Label(frame, text="CREATE YOUR ACCOUNT", font=("Arial", 24, "bold"), fg="#ffffff", bg="#0078d4")
     title_label.grid(row=0, column=0, columnspan=3, pady=(10, 20))
 
-
     username_label = tk.Label(frame, text="Enter A Username:", font=("Arial", 12), bg="white")
     username_label.grid(row=1, column=0, columnspan=3, sticky="w", pady=(5, 0), padx=10)
 
     username_field = tk.Entry(frame, justify='left', bg="#f7f7f7", font=("Arial", 12), width=40, bd=1, relief=tk.SOLID)
     username_field.grid(row=2, column=0, columnspan=2, pady=(0, 10), padx=10)
-
-
 
     password_label = tk.Label(frame, text="Enter Your Password:", font=("Arial", 12), bg="white")
     password_label.grid(row=3, column=0, columnspan=3, sticky="w", pady=(5, 0), padx=10)
@@ -140,8 +146,6 @@ def SignUpPage():
     password_toggle_button = tk.Button(frame, text="Show", font=("Arial", 10), relief='flat', bg="#0078d4", fg="white", command=toggle_main_password)
     password_toggle_button.grid(row=4, column=2, pady=(0, 10), padx=10)
 
-
-
     verify_password_label = tk.Label(frame, text="Verify Your Password:", font=("Arial", 12), bg="white")
     verify_password_label.grid(row=5, column=0, columnspan=3, sticky="w", pady=(5, 0), padx=10)
 
@@ -151,15 +155,14 @@ def SignUpPage():
     verify_password_toggle_button = tk.Button(frame, text="Show", font=("Arial", 10), relief='flat', bg="#0078d4", fg="white", command=toggle_verify_password)
     verify_password_toggle_button.grid(row=6, column=2, pady=(0, 10), padx=10)
 
-
-
     signup_button = tk.Button(frame, text="Sign Up", font=("Arial", 12), bg="#0078d4", fg="white", relief='flat', width=20, command=store_inputs)
     signup_button.grid(row=7, column=0, columnspan=3, pady=(10, 10))
 
     status_label = tk.Label(frame, text="", font=("Arial", 10), bg="white")
-    status_label.grid(row=8, column=0, columnspan=3, pady=(5, 5))
+    status_label.grid(row=10, column=0, columnspan=3, pady=(5, 5))
 
-
+    back_button = tk.Button(frame, text="Back", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=go_back)
+    back_button.grid(row=8, column=0, columnspan=3, pady=(10,10))
 
     login_button = tk.Button(frame, text="Already have an account? Login here.", font=("Arial", 10), bg="white", fg="#0078d4", relief='flat', command=open_login_page)
     login_button.grid(row=9, column=0, columnspan=3, pady=(10, 10))
