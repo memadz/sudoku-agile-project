@@ -37,7 +37,8 @@ def LoggedInMenu():
                     break
             if user_data and "game_state" in user_data:
                 previous_difficulty = user_data["game_state"]["difficulty"]
-                update_win_streak(current_username, False, previous_difficulty)
+                if user_data["game_state"]["lives"] != None or user_data["game_state"]["hint_count"] != None:
+                    update_win_streak(current_username, False, previous_difficulty)
         except:
             pass
 
