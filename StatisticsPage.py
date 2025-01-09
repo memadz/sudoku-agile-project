@@ -46,7 +46,9 @@ def StatisticsPage():
         tk.Label(frame, text=f"{difficulty.capitalize()}", font=("Arial", 10, "bold"), bg="white", fg="black").pack(pady=3)
 
         # Display the statistics for current difficulty
+        tk.Label(frame, text=f"Games Started: {stats["games_started"]}", font=("Arial", 8), bg="white", fg="black").pack(pady=1)
         tk.Label(frame, text=f"Games Won: {stats["games_won"]}", font=("Arial", 8), bg="white", fg="black").pack(pady=1)
+        tk.Label(frame, text=f"Win Rate: {float(stats["win_rate"] * 100):.1f}%", font=("Arial", 8), bg="white", fg="black").pack(pady=1)
         tk.Label(frame, text=f"Wins with No Mistakes: {stats['wins_no_mistakes']}", font=("Arial", 8), bg="white", fg="black").pack(pady=1)
         tk.Label(frame, text=f"Current Win Streak: {stats['current_win_streak']}", font=("Arial", 8), bg="white", fg="black").pack(pady=1)
         tk.Label(frame, text=f"Best Win Streak: {stats['best_win_streak']}", font=("Arial", 8), bg="white", fg="black").pack(pady=1)
