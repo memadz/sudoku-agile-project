@@ -7,6 +7,12 @@ from StatisticSaver import increment_games_started, update_win_rate, increment_g
 def SudokuGame():
     # Global/Nonlocal variables and constants
     GRID_SIZE = 9
+    entry_widgets = []
+    for i in range(GRID_SIZE):
+        row = []
+        for j in range(GRID_SIZE):
+            row.append(None)
+        entry_widgets.append(row)
     mistake_count = 0
     hint_count = 0 
     time_elapsed = 0 # Variable to track the time elapsed in seconds
@@ -21,8 +27,10 @@ def SudokuGame():
     current_username = None # Default username
     current_difficulty = "easy" # Default difficulty
     
+    # Initialize the sudoku grid 
     sudoku_grid, solved_grid = SudokuPuzzleGenerator.generate_sudoku_puzzle(current_difficulty)
 
+    # Load username and difficulty from command line arguments
     try:
         if len(sys.argv) > 1: # Check if there is atleast one command line argument passed to this file
             current_username = sys.argv[1] # Retrieve the username, passed as an argument from loginPage to loggedinPage to this file
@@ -32,8 +40,9 @@ def SudokuGame():
     except: # If there are no command line arguments passed
         pass # Do nothing
 
+    # Update certain game statistics immediately if a game is started
     try:
-        if current_username != None:
+        if current_username != None: 
             increment_games_started(current_username, current_difficulty)
             update_win_rate(current_username, current_difficulty)
     except:
@@ -63,13 +72,27 @@ def SudokuGame():
             new_row = []
             for num in row:
                 if num != 0:
-                    new_row.append([num, 0])  # Tag default numbers with 0
+                    new_row.append([num, "default"])  # Tag default numbers with "default"
                 else:
-                    new_row.append([0, 0])  # Tag empty cells with 0
+                    new_row.append([0, "default"])  # Tag empty cells with "default"
             tagged_sudoku_grid.append(new_row)
         sudoku_grid = tagged_sudoku_grid
         return sudoku_grid
 
+    # Save game state when needed
+    def update_game_state(current_difficulty, sudoku_grid, solved_grid):
+        nonlocal time_elapsed, lives, hint_count    
+        game_state = {
+            "difficulty": current_difficulty,
+            "board_state": sudoku_grid,
+            "solved_grid": solved_grid,
+            "time_elapsed": time_elapsed,
+            "lives": lives,
+            "hint_count": hint_count,
+        }
+        save_game_state(current_username, game_state)
+
+    # Open and save the game state to the JSON file
     def save_game_state(username, game_state):
         try:
             with open("Users.json", "r") as f:
@@ -82,7 +105,8 @@ def SudokuGame():
                 json.dump(users_data, f, indent=4)
         except FileNotFoundError:
             print("Users.json file not found.")
-
+    
+    # Load the game state
     def load_game_state(username):
         try:
             with open("Users.json", "r") as f:
@@ -99,276 +123,16 @@ def SudokuGame():
         except FileNotFoundError:
             return None
 
-    # Save game state when needed
-    def update_game_state(current_difficulty, sudoku_grid, solved_grid):
-        nonlocal time_elapsed, lives, hint_count    
-        game_state = {
-            "difficulty": current_difficulty,
-            "board_state": sudoku_grid,
-            "solved_grid": solved_grid,
-            "time_elapsed": time_elapsed,
-            "lives": lives,
-            "hint_count": hint_count,
-        }
-        save_game_state(current_username, game_state)
-
-    # Function to toggle annotation mode
-    def toggle_annotation_mode():
-        nonlocal annotation_mode
-
-        # Locate the "Note" button
-        for widget in button_frame.winfo_children():
-            if isinstance(widget, ttk.Button) and widget.cget("text") == "Note":
-                toggle_annotation_button = widget
-                break  # Found the "Note" button, exit the loop
-
-        # Toggle the annotation mode
-        annotation_mode = not annotation_mode # True if False, False if True
-
-        if annotation_mode:
-            toggle_annotation_button.state(["pressed"])  # ON
-            sound_enable.play(maxtime=2000)
-        else:
-            toggle_annotation_button.state(["!pressed"])  # OFF
-            sound_disable.play(maxtime=2000)
-    
-    # Pop up box for new game options
-    def message_box(gamestate):   
-        nonlocal game_state, time_elapsed, lives, hint_count
-        root.focus() # Focus on the root window (Lose focus on the entry widget when the popup appears)
-        root.attributes("-disabled", 1) # Disables the grid from interaction
-        
-        popup_window = tk.Toplevel() # Create a new window
-        popup_window.geometry("400x300") # Set the dimensions of the window
-        popup_window.resizable(False, False)  # Disable resizing
-        popup_window.protocol("WM_DELETE_WINDOW", lambda: True) # Disable delete window
-        popup_window.attributes("-toolwindow", True) # Disable windows tools
-        
-        if gamestate == "win":
-            lives = None # Update those key value to None to make it not possible to continue from current game state. This will be exploited in LoggedInMenu when trying to continue.
-            hint_count = None
-            update_game_state(current_difficulty, sudoku_grid, solved_grid)
-            
-            popup_window.title("Congratulations!")  # Set the title of the window
-            tk.Label(popup_window, text="Congratulations! You won the game!", font=("Arial", 12)).pack(pady=20)
-            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
-            
-        elif gamestate == "lose":
-            lives = None
-            hint_count = None
-            update_game_state(current_difficulty, sudoku_grid, solved_grid)
-
-            reset_win_streak() # Reset the win streak if the player loses
-            popup_window.title("Game Over")
-            tk.Label(popup_window, text="You ran out of lives! Better Luck Next Time", font=("Arial", 12)).pack(pady=20)
-            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
-        elif gamestate == "newgame":
-            popup_window.title("New Game")
-            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
-
-            close_button = tk.Button(popup_window, text="Close", font=("Arial", 12), command=lambda: [root.attributes('-disabled', 0), popup_window.destroy()])
-            close_button.pack(padx=20, pady=5)
- 
-        # Easy Mode Button
-        easy_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()]) # Call easy mode, re-enable the root and destroy the popup in this order.
-        easy_button.pack(padx=20, pady=5)
-        if gamestate == "newgame":
-            easy_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
-
-        # Medium Mode Button
-        medium_button = tk.Button(popup_window, text="Medium Mode", font=("Arial", 12), command=lambda: [change_mode("medium"), root.attributes('-disabled', 0), popup_window.destroy()])
-        medium_button.pack(padx=20, pady=5)
-        if gamestate == "newgame":
-            medium_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
-
-        # Hard Mode Button
-        hard_button = tk.Button(popup_window, text="Hard Mode", font=("Arial", 12), command=lambda: [change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
-        hard_button.pack(padx=20, pady=5)
-        if gamestate == "newgame":
-            hard_button = tk.Button(popup_window, text="Hard Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
-
-        # Main Menu Button
-        main_menu_button = tk.Button(popup_window, text="Main Menu", bg="red", fg="black", font=("Arial", 15), command=lambda: [go_back(), root.destroy])
-        main_menu_button.pack(padx=30, pady=8)
-
+    """ Main game logic functions """
+    # Input validation function
     def input_validator(input):
-        if input == "":
-            return True
-        
-        if input.isdigit() and 1 <= int(input) <= 9 and len(input):
-            return True
-        
-        return False
-
-    # Highlight current cell and all clashing cells with the same value in its row, column, and 3x3 block.
-    def highlight_clash(row, col):
-        user_input = entry_widgets[row][col].get() # Get the current input from the widget
-
-        # Check the specified row and column
-        for i in range(GRID_SIZE):
-            # Check row
-            if entry_widgets[row][i].get() == user_input:
-                if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
-                    entry_widgets[row][i].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS) # Configurate the background and foreground to red (different hues for distinction)
-                else:
-                    entry_widgets[row][i].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS) # Configurate for read-only cells aswell (foreground is black for distinction)
-
-            # Check column
-            if entry_widgets[i][col].get() == user_input:
-                if entry_widgets[i][col]["state"] != "readonly":
-                    entry_widgets[i][col].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS)
-                else:
-                    entry_widgets[i][col].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
-
-        # Check 3x3 block
-        start_row = (row // 3) * 3
-        start_col = (col // 3) * 3
-        for r in range(start_row, start_row + 3):
-            for c in range(start_col, start_col + 3):
-                if entry_widgets[r][c].get() == user_input:
-                    if entry_widgets[r][c]["state"] != "readonly":
-                        entry_widgets[r][c].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS)
-                    else:
-                        entry_widgets[r][c].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
-
-    def reset_highlight():
-        for row in range(GRID_SIZE):
-            for col in range(GRID_SIZE):
-                if entry_widgets[row][col]["state"] != "readonly":
-                    entry_widgets[row][col].config(bg=BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
-                else:
-                    entry_widgets[row][col].config(readonlybackground=BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
-                
-        # Reapply highlights for all non-empty, non-readonly cells
-        for row in range(GRID_SIZE):
-            for col in range(GRID_SIZE):
-                user_input = entry_widgets[row][col].get()
-                if user_input and entry_widgets[row][col]["state"] != "readonly":  # Check if the cell is not empty and not readonly
-                    if user_input.isdigit() and int(user_input) != solved_grid[row][col]:
-                        highlight_clash(row, col)  # Call highlight for non-empty, non-readonly cells
-                    elif user_input.isdigit() and int(user_input) == solved_grid[row][col]:
-                        entry_widgets[row][col].config(bg=BACKGROUND_COLOR, fg=CORRECT_INPUT_COLOR, font=ALL_FONTS)
+            if input == "":
+                return True
+            if input.isdigit() and 1 <= int(input) <= 9 and len(input):
+                return True
+            return False
     
-    # Check user input for mistakes
-    def check_input(row, col):
-        nonlocal mistake_count
-        user_input = entry_widgets[row][col].get()
-        
-        # If the input is empty (user has removed input)
-        if not user_input:
-            reset_highlight()  # Clear previous highlights first
-        
-        # Check if the input is a digit and within the valid range
-        if user_input.isdigit() and 1 <= int(user_input) <= 9:
-            # Check if the user input matches the solved grid
-            if int(user_input) != solved_grid[row][col]:
-                highlight_clash(row, col)
-                sound_incorrect_input.play(maxtime=2000)
-                mistake_handler()  # Call the highlight clash function
-                mistake_count += 1  # Increment mistake count by 1
-            else:
-                sound_correct_input.play(maxtime=2000)
-
-            # Check for duplicates in the same row and column
-            for i in range(GRID_SIZE):
-                if i != col and entry_widgets[row][i].get() == user_input: # Check for duplicates in the same row
-                    highlight_clash(row, i)  # Highlight duplicate in the row
-            
-                if i != row and entry_widgets[i][col].get() == user_input: # Check for duplicates in the same column
-                    highlight_clash(i, col)  # Highlight duplicate in the column
-
-            # Check for duplicates in the same 3x3 block
-            start_row = (row // 3) * 3
-            start_col = (col // 3) * 3
-            for r in range(start_row, start_row + 3):
-                for c in range(start_col, start_col + 3):
-                    if (r != row or c != col) and entry_widgets[r][c].get() == user_input:
-                        highlight_clash(r, c)  # Highlight duplicate in the block
-
-    def on_closing():
-        update_game_state(current_difficulty, sudoku_grid, solved_grid)
-        root.destroy() # Destroy the root window
-
-    # Reset mistake count
-    def reset_mistake_count():
-        nonlocal mistake_count
-        mistake_count = 0
-        
-    # Life System for players
-    def mistake_handler():
-        nonlocal lives, life_label
-        lives -= 1  # Decrement the life everytime it is called
-        if lives > 0:
-            life_label.config(text=f"LIVES: {lives}")
-        elif lives == 0:
-            life_label.config(text=f"")
-            sound_game_over.play(maxtime=3000)
-            timer("stop")
-            message_box("lose") # Call the message box function with the argument "lose"
-            
-    def reset_lives():
-        nonlocal lives, life_label
-        # Set back life to 3 whenever it's called
-        lives = 3
-        life_label.config(text=f"LIVES: {lives}")
-
-    # Reset hint count
-    def reset_hint_count():
-        nonlocal hint_count
-        hint_count = 0
-
-    # Give hint to the player
-    def give_hint():
-        nonlocal hint_count
-
-        if is_paused: # If the timer is paused, don't give hints
-            return # Exit the function
-
-        if hint_count >= 3:
-            print("Out of hints.")
-            sound_incorrect_input.play(maxtime=2000)
-            return
-        
-        empty_cells = []
-        for row in range(GRID_SIZE):
-            for col in range(GRID_SIZE):
-                if entry_widgets[row][col].get() == "" or entry_widgets[row][col].cget("fg") == WRONG_INPUT_COLOR:  
-                    empty_cells.append((row, col))
-        
-        if empty_cells:  
-            random_cell = random.choice(empty_cells)
-            row, col = random_cell
-            correct_value = solved_grid[row][col]
-            entry_widgets[row][col].delete(0)
-            entry_widgets[row][col].insert(0, str(correct_value))
-            entry_widgets[row][col].config(state="readonly", readonlybackground=HINT_CELL_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
-            hint_count += 1
-            update_game_state(current_difficulty, sudoku_grid, solved_grid) # Not needed, just for visual live update on the JSON file
-            highlight_related_cells(row, col)
-            sound_hint.play(maxtime=3000)
-        else:
-            print("No empty cells available for hints.")
-
-        if len(empty_cells) == 1: # If there is only one empty cell left
-            check() # Check if the puzzle is solved
-      
-    # Reset win streak if conditions are met
-    def reset_win_streak():
-        nonlocal current_username, current_difficulty, is_solved, time_elapsed
-
-        if current_username == None:
-            return # Exit the function if the username is not provided
-        
-        # Reset the win streak only if the puzzle is not solved
-        if not is_solved:
-            time_elapsed = 0
-            update_game_state(current_difficulty, sudoku_grid, solved_grid)
-            update_win_streak(current_username, is_solved, current_difficulty)
-            print(f"Win streak for {current_difficulty} has been reset.")
-        else:
-            print(f"Win streak for {current_difficulty} remains intact.")
-
-    # Check if the Sudoku puzzle is solved
+    # Check if the puzzle is solved
     def check():
         nonlocal is_solved, time_elapsed
         current = []
@@ -416,6 +180,259 @@ def SudokuGame():
         else:
             return False # The puzzle is not solved yet
         
+    # Check user input for mistakes
+    def check_input(row, col):
+        nonlocal mistake_count
+        user_input = entry_widgets[row][col].get()
+        
+        # If the input is empty (user has removed input)
+        if not user_input:
+            reset_highlight()  # Clear previous highlights first
+        
+        # Check if the input is a digit and within the valid range
+        if user_input.isdigit() and 1 <= int(user_input) <= 9:
+            # Check if the user input matches the solved grid
+            if int(user_input) != solved_grid[row][col]:
+                highlight_clash(row, col)
+                sound_incorrect_input.play(maxtime=2000)
+                update_life()  # Update life count
+                mistake_count += 1  # Increment mistake count by 1
+            else:
+                sound_correct_input.play(maxtime=2000)
+
+            # Check for duplicates in the same row and column
+            for i in range(GRID_SIZE):
+                if i != col and entry_widgets[row][i].get() == user_input: # Check for duplicates in the same row
+                    highlight_clash(row, i)  # Highlight duplicate in the row
+            
+                if i != row and entry_widgets[i][col].get() == user_input: # Check for duplicates in the same column
+                    highlight_clash(i, col)  # Highlight duplicate in the column
+
+            # Check for duplicates in the same 3x3 block
+            start_row = (row // 3) * 3
+            start_col = (col // 3) * 3
+            for r in range(start_row, start_row + 3):
+                for c in range(start_col, start_col + 3):
+                    if (r != row or c != col) and entry_widgets[r][c].get() == user_input:
+                        highlight_clash(r, c)  # Highlight duplicate in the block
+
+        
+    # Highlight current cell and all clashing cells with the same value in its row, column, and 3x3 block.
+    def highlight_clash(row, col):
+        user_input = entry_widgets[row][col].get() # Get the current input from the widget
+
+        # Check the specified row and column
+        for i in range(GRID_SIZE):
+            # Check row
+            if entry_widgets[row][i].get() == user_input:
+                if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
+                    entry_widgets[row][i].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS) # Configurate the background and foreground to red (different hues for distinction)
+                else:
+                    entry_widgets[row][i].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS) # Configurate for read-only cells aswell (foreground is black for distinction)
+
+            # Check column
+            if entry_widgets[i][col].get() == user_input:
+                if entry_widgets[i][col]["state"] != "readonly":
+                    entry_widgets[i][col].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS)
+                else:
+                    entry_widgets[i][col].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
+
+        # Check 3x3 block
+        start_row = (row // 3) * 3
+        start_col = (col // 3) * 3
+        for r in range(start_row, start_row + 3):
+            for c in range(start_col, start_col + 3):
+                if entry_widgets[r][c].get() == user_input:
+                    if entry_widgets[r][c]["state"] != "readonly":
+                        entry_widgets[r][c].config(bg=RELATED_WRONG_CELLS_COLOR, fg=WRONG_INPUT_COLOR, font=ALL_FONTS)
+                    else:
+                        entry_widgets[r][c].config(readonlybackground=RELATED_WRONG_CELLS_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
+    
+    # Reset highlight function
+    def reset_highlight():
+        for row in range(GRID_SIZE):
+            for col in range(GRID_SIZE):
+                if entry_widgets[row][col]["state"] != "readonly":
+                    entry_widgets[row][col].config(bg=BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
+                else:
+                    entry_widgets[row][col].config(readonlybackground=BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
+                
+        # Reapply highlights for all non-empty, non-readonly cells
+        for row in range(GRID_SIZE):
+            for col in range(GRID_SIZE):
+                user_input = entry_widgets[row][col].get()
+                if user_input and entry_widgets[row][col]["state"] != "readonly":  # Check if the cell is not empty and not readonly
+                    if user_input.isdigit() and int(user_input) != solved_grid[row][col]:
+                        highlight_clash(row, col)  # Call highlight for non-empty, non-readonly cells
+ 
+    # Function to handle highlighting of cells (Only making this a function since on_click and on_key_press will be using duplicate code otherwise)
+    def highlight_related_cells(row, col):
+        reset_highlight()  # Clear previous highlights
+
+        # Highlight the entire row and column
+        for i in range(GRID_SIZE):
+            # Check row
+            if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
+                if entry_widgets[row][i].cget("bg") != RELATED_WRONG_CELLS_COLOR:  # If the cell has not been marked as a mistake
+                    entry_widgets[row][i].config(bg=RELATED_CELLS_COLOR)  # Highlight the background of the cell to blue
+            else:
+                if entry_widgets[row][i].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
+                    entry_widgets[row][i].config(readonlybackground=RELATED_CELLS_COLOR)  # Highlight the background of read-only cells aswell
+
+            # Check column
+            if entry_widgets[i][col]["state"] != "readonly":
+                if entry_widgets[i][col].cget("bg") != RELATED_WRONG_CELLS_COLOR:
+                    entry_widgets[i][col].config(bg=RELATED_CELLS_COLOR)
+            else:
+                if entry_widgets[i][col].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
+                    entry_widgets[i][col].config(readonlybackground=RELATED_CELLS_COLOR)
+
+        # Highlight the 3x3 block
+        start_row = (row // 3) * 3
+        start_col = (col // 3) * 3
+        for r in range(start_row, start_row + 3):
+            for c in range(start_col, start_col + 3):
+                if entry_widgets[r][c]["state"] != "readonly":
+                    if entry_widgets[r][c].cget("bg") != RELATED_WRONG_CELLS_COLOR:
+                        entry_widgets[r][c].config(bg=RELATED_CELLS_COLOR)
+                else:
+                    if entry_widgets[r][c].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
+                        entry_widgets[r][c].config(readonlybackground=RELATED_CELLS_COLOR)
+
+        # Highlight the clicked cell
+        widget = entry_widgets[row][col]
+        if widget["state"] != "readonly":
+            widget.config(bg=SELECTED_CELL_COLOR) # Highlight the cell's background to another distinguishable hue of blue
+        else:
+            widget.config(readonlybackground=SELECTED_CELL_COLOR) # Highlight the read-only cell's background aswell
+
+        # Reapply blue foreground for all correct inputs
+        for r in range(GRID_SIZE):
+            for c in range(GRID_SIZE):
+                if entry_widgets[r][c]["state"] != "readonly":
+                    if entry_widgets[r][c].get() == str(solved_grid[r][c]):
+                        entry_widgets[r][c].config(fg=CORRECT_INPUT_COLOR)  # Set text color to blue for correct input
+
+        # Get the value from the clicked cell
+        user_input = widget.get()
+        
+        # If the cell is not empty, highlight all cells with the same value
+        if user_input and user_input.isdigit():
+            highlight_all_same_value(user_input, row, col) # Pass the value of the clicked cell and its position
+
+    # Function to highlight all cells with the same value
+    def highlight_all_same_value(value, row, col):
+        current_position = (row, col)
+        for r in range(GRID_SIZE):
+            for c in range(GRID_SIZE):
+                if entry_widgets[r][c].get() == value:
+                    if entry_widgets[r][c].cget("bg") == RELATED_WRONG_CELLS_COLOR or entry_widgets[r][c].cget("readonlybackground") == RELATED_WRONG_CELLS_COLOR: # If the cell has already been marked a mistake
+                        continue # Skip if marked as a mistake
+                    if entry_widgets[r][c]["state"] != "readonly" and current_position != (r, c): # If the cell is not read-only
+                        entry_widgets[r][c].config(bg=SAME_VALUE_CELL_COLOR) # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
+                    elif entry_widgets[r][c]["state"] == "readonly" and current_position != (r, c): # If the cell is read-only
+                        entry_widgets[r][c].config(readonlybackground=SAME_VALUE_CELL_COLOR) # Highlight the cells aswell
+
+    # Reset mistake count
+    def reset_mistake_count():
+        nonlocal mistake_count
+        mistake_count = 0
+
+    # Function to toggle annotation mode
+    def toggle_annotation_mode():
+        nonlocal annotation_mode
+
+        # Locate the "Note" button
+        for widget in button_frame.winfo_children():
+            if isinstance(widget, ttk.Button) and widget.cget("text") == "Note":
+                toggle_annotation_button = widget
+                break  # Found the "Note" button, exit the loop
+
+        # Toggle the annotation mode
+        annotation_mode = not annotation_mode # True if False, False if True
+
+        if annotation_mode:
+            toggle_annotation_button.state(["pressed"])  # ON
+            sound_enable.play(maxtime=2000)
+        else:
+            toggle_annotation_button.state(["!pressed"])  # OFF
+            sound_disable.play(maxtime=2000)
+
+    # Update life count for mistakes
+    def update_life():
+        nonlocal lives, life_label
+        lives -= 1  # Decrement the life count by 1 everytime it is called
+        if lives > 0:
+            life_label.config(text=f"LIVES: {lives}")
+        elif lives == 0:
+            life_label.config(text=f"")
+            sound_game_over.play(maxtime=3000)
+            timer("stop")
+            message_box("lose") # Call the message box function with the argument "lose"
+            
+    # Reset lives count
+    def reset_lives():
+        nonlocal lives, life_label
+        # Set back life to 3 whenever it's called
+        lives = 3
+        life_label.config(text=f"LIVES: {lives}")
+
+    # Give hint to the user
+    def give_hint():
+        nonlocal hint_count
+
+        if is_paused: # If the timer is paused, don't give hints
+            return # Exit the function
+
+        if hint_count >= 3:
+            print("Out of hints.")
+            sound_incorrect_input.play(maxtime=2000)
+            return
+        
+        empty_cells = []
+        for row in range(GRID_SIZE):
+            for col in range(GRID_SIZE):
+                if entry_widgets[row][col].get() == "" or entry_widgets[row][col].cget("fg") == WRONG_INPUT_COLOR:  
+                    empty_cells.append((row, col))
+        
+        if empty_cells:  
+            random_cell = random.choice(empty_cells)
+            row, col = random_cell
+            correct_value = solved_grid[row][col]
+            entry_widgets[row][col].delete(0)
+            entry_widgets[row][col].insert(0, str(correct_value))
+            entry_widgets[row][col].config(state="readonly", readonlybackground=HINT_CELL_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
+            hint_count += 1
+            update_game_state(current_difficulty, sudoku_grid, solved_grid) # Not needed, just for visual live update on the JSON file
+            highlight_related_cells(row, col)
+            sound_hint.play(maxtime=3000)
+        else:
+            print("No empty cells available for hints.")
+
+        if len(empty_cells) == 1: # If there is only one empty cell left
+            check() # Check if the puzzle is solved
+
+    # Reset hint count
+    def reset_hint_count():
+        nonlocal hint_count
+        hint_count = 0
+      
+    # Reset win streak if conditions are met
+    def reset_win_streak():
+        nonlocal current_username, current_difficulty, is_solved, time_elapsed
+
+        if current_username == None:
+            return # Exit the function if the username is not provided
+        
+        # Reset the win streak only if the puzzle is not solved
+        if not is_solved:
+            time_elapsed = 0
+            update_game_state(current_difficulty, sudoku_grid, solved_grid)
+            update_win_streak(current_username, is_solved, current_difficulty)
+            print(f"Win streak for {current_difficulty} has been reset.")
+        else:
+            print(f"Win streak for {current_difficulty} remains intact.")
+
     # Function to draw the canvas for the Sudoku grid    
     def draw_grid():
         # Create a canvas over the Sudoku frame for drawing lines
@@ -454,12 +471,12 @@ def SudokuGame():
                 if sudoku_grid[row][col][0] != 0:
                     entry.insert(0, sudoku_grid[row][col][0]) # Index 0 is the value of the cell
                     entry.config(state="readonly", readonlybackground=BACKGROUND_COLOR, fg=FOREGROUND_COLOR)  # Make it read-only
-                    if sudoku_grid[row][col][1] == 1: # Index 1 value 1 is the tag for mistakes // user defined
-                        entry.config(fg=WRONG_INPUT_COLOR, bg=RELATED_WRONG_CELLS_COLOR, state="normal")
+                    if sudoku_grid[row][col][1] == "wrong": # Tag the value at index 1 with "wrong" for wrong inputs
+                        entry.config(state="normal", fg=WRONG_INPUT_COLOR, bg=RELATED_WRONG_CELLS_COLOR) # Make the user input's normal again.
                         entry.filled_cell = True  # Cell is filled initially
                         entry.bind("<KeyPress>", on_key_press) # Bind key press event to call the function "on_key_press"
-                    if sudoku_grid[row][col][1] == 2: # Index 1 value 2 is the tag for correct input // user defined
-                        entry.config(fg=CORRECT_INPUT_COLOR, state="normal")
+                    if sudoku_grid[row][col][1] == "correct": # Tag the value at index 1 with "correct" for correct inputs
+                        entry.config(state="normal", fg=CORRECT_INPUT_COLOR)
                         entry.filled_cell = True  
                         entry.bind("<KeyPress>", on_key_press) 
                 else:
@@ -471,12 +488,9 @@ def SudokuGame():
         try:
             if current_username != None: # If the player is not a guest
                 highlight_related_cells(row,col) # Highlight related cells for the saved game state
-                if entry_widgets[row][col] == entry_widgets[8][8]: # If the last cell is reached (Since the last cell is highlighted we want to remove that highlight)
-                    reset_highlight() # Reset the highlight if the last cell is reached
         except:
             pass
                 
-
     # Helper function for key press handling
     def on_key_press(event):
         widget = event.widget
@@ -581,16 +595,16 @@ def SudokuGame():
                     value = widget.get()
                     if widget.get() == "":  # If the input is empty
                         value = 0
-                        sudoku_grid[row][col][1] = 0
+                        sudoku_grid[row][col][1] = "default"
                         sudoku_grid[row][col][0] = value
                     else:
                         value = int(widget.get()) # Convert the input to an integer
                         sudoku_grid[row][col][0] = value
                 
                     if widget.cget("fg") == WRONG_INPUT_COLOR:
-                        sudoku_grid[row][col][1] = 1
+                        sudoku_grid[row][col][1] = "wrong"
                     if widget.cget("fg") == CORRECT_INPUT_COLOR:
-                        sudoku_grid[row][col][1] = 2
+                        sudoku_grid[row][col][1] = "correct"
 
                     update_game_state(current_difficulty, sudoku_grid, solved_grid)
                 except ValueError:
@@ -630,75 +644,7 @@ def SudokuGame():
             synthetic_event.widget = next_widget
             on_click(synthetic_event)  # Call the on_click function for the new widget
         return "break"  # Prevent the default behavior of tab key press event from being propagated further (e.g., stop the default tabbing behavior, use the custom defined behavior instead)
-
-    # Function to handle highlighting of cells (Only making this a function since on_click and on_key_press will be using duplicate code otherwise)
-    def highlight_related_cells(row, col):
-        reset_highlight()  # Clear previous highlights
-
-        # Highlight the entire row and column
-        for i in range(GRID_SIZE):
-            # Check row
-            if entry_widgets[row][i]["state"] != "readonly": # If cell state is not read-only
-                if entry_widgets[row][i].cget("bg") != RELATED_WRONG_CELLS_COLOR:  # If the cell has not been marked as a mistake
-                    entry_widgets[row][i].config(bg=RELATED_CELLS_COLOR)  # Highlight the background of the cell to blue
-            else:
-                if entry_widgets[row][i].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
-                    entry_widgets[row][i].config(readonlybackground=RELATED_CELLS_COLOR)  # Highlight the background of read-only cells aswell
-
-            # Check column
-            if entry_widgets[i][col]["state"] != "readonly":
-                if entry_widgets[i][col].cget("bg") != RELATED_WRONG_CELLS_COLOR:
-                    entry_widgets[i][col].config(bg=RELATED_CELLS_COLOR)
-            else:
-                if entry_widgets[i][col].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
-                    entry_widgets[i][col].config(readonlybackground=RELATED_CELLS_COLOR)
-
-        # Highlight the 3x3 block
-        start_row = (row // 3) * 3
-        start_col = (col // 3) * 3
-        for r in range(start_row, start_row + 3):
-            for c in range(start_col, start_col + 3):
-                if entry_widgets[r][c]["state"] != "readonly":
-                    if entry_widgets[r][c].cget("bg") != RELATED_WRONG_CELLS_COLOR:
-                        entry_widgets[r][c].config(bg=RELATED_CELLS_COLOR)
-                else:
-                    if entry_widgets[r][c].cget("readonlybackground") != RELATED_WRONG_CELLS_COLOR:
-                        entry_widgets[r][c].config(readonlybackground=RELATED_CELLS_COLOR)
-
-        # Highlight the clicked cell
-        widget = entry_widgets[row][col]
-        if widget["state"] != "readonly":
-            widget.config(bg=SELECTED_CELL_COLOR) # Highlight the cell's background to another distinguishable hue of blue
-        else:
-            widget.config(readonlybackground=SELECTED_CELL_COLOR) # Highlight the read-only cell's background aswell
-
-        # Reapply blue foreground for all correct inputs
-        for r in range(GRID_SIZE):
-            for c in range(GRID_SIZE):
-                if entry_widgets[r][c]["state"] != "readonly":
-                    if entry_widgets[r][c].get() == str(solved_grid[r][c]):
-                        entry_widgets[r][c].config(fg=CORRECT_INPUT_COLOR)  # Set text color to blue for correct input
-
-        # Get the value from the clicked cell
-        user_input = widget.get()
-        
-        # If the cell is not empty, highlight all cells with the same value
-        if user_input and user_input.isdigit():
-            highlight_all_same_value(user_input, row, col) # Pass the value of the clicked cell and its position
-
-    # Function to highlight all cells with the same value
-    def highlight_all_same_value(value, row, col):
-        current_position = (row, col)
-        for r in range(GRID_SIZE):
-            for c in range(GRID_SIZE):
-                if entry_widgets[r][c].get() == value:
-                    if entry_widgets[r][c].cget("bg") == RELATED_WRONG_CELLS_COLOR or entry_widgets[r][c].cget("readonlybackground") == RELATED_WRONG_CELLS_COLOR: # If the cell has already been marked a mistake
-                        continue # Skip if marked as a mistake
-                    if entry_widgets[r][c]["state"] != "readonly" and current_position != (r, c): # If the cell is not read-only
-                        entry_widgets[r][c].config(bg=SAME_VALUE_CELL_COLOR) # Highlight the read-only cells with the same value as the clicked cell to another hue of blue for distinction
-                    elif entry_widgets[r][c]["state"] == "readonly" and current_position != (r, c): # If the cell is read-only
-                        entry_widgets[r][c].config(readonlybackground=SAME_VALUE_CELL_COLOR) # Highlight the cells aswell
-
+    
     # Timer functionality
     def timer(action=None):
         nonlocal time_elapsed, timer_id, is_paused
@@ -764,14 +710,74 @@ def SudokuGame():
                     cell.unbind("<KeyPress>") # Unbind key press
                     cell.unbind("<Tab>") # Unbind tab key
                 elif state == "show": # Restore the state of the puzzle
-                    if sudoku_grid[row][col][0] == 0: # Compared to the unsolved grid
+                   
+                    if sudoku_grid[row][col][1] == "wrong" or sudoku_grid[row][col][1] == "correct" or sudoku_grid[row][col][0] == 0:
                         cell.config(state="normal", show="")
-                        
                     else:
                         cell.config(state="readonly", show="") 
+           
                     cell.bind("<Button-1>", on_click) # Rebind left click
                     cell.bind("<KeyPress>", on_key_press) # Rebind key press
                     cell.bind("<Tab>", on_tab) # Rebind tab key  
+
+    # Message box popup for different game states
+    def message_box(gamestate):   
+        nonlocal game_state, time_elapsed, lives, hint_count
+        root.focus() # Focus on the root window (Lose focus on the entry widget when the popup appears)
+        root.attributes("-disabled", 1) # Disables the grid from interaction
+        
+        popup_window = tk.Toplevel() # Create a new window
+        popup_window.geometry("400x300") # Set the dimensions of the window
+        popup_window.resizable(False, False)  # Disable resizing
+        popup_window.protocol("WM_DELETE_WINDOW", lambda: True) # Disable delete window
+        popup_window.attributes("-toolwindow", True) # Disable windows tools
+        
+        if gamestate == "win":
+            lives = None # Update those key value to None to make it not possible to continue from current game state. This will be exploited in LoggedInMenu when trying to continue.
+            hint_count = None
+            update_game_state(current_difficulty, sudoku_grid, solved_grid)
+            
+            popup_window.title("Congratulations!")  # Set the title of the window
+            tk.Label(popup_window, text="Congratulations! You won the game!", font=("Arial", 12)).pack(pady=20)
+            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
+            
+        elif gamestate == "lose":
+            lives = None
+            hint_count = None
+            update_game_state(current_difficulty, sudoku_grid, solved_grid)
+
+            reset_win_streak() # Reset the win streak if the player loses
+            popup_window.title("Game Over")
+            tk.Label(popup_window, text="You ran out of lives! Better Luck Next Time", font=("Arial", 12)).pack(pady=20)
+            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
+        elif gamestate == "newgame":
+            popup_window.title("New Game")
+            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
+
+            close_button = tk.Button(popup_window, text="Close", font=("Arial", 12), command=lambda: [root.attributes('-disabled', 0), popup_window.destroy()])
+            close_button.pack(padx=20, pady=5)
+ 
+        # Easy Mode Button
+        easy_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()]) # Call easy mode, re-enable the root and destroy the popup in this order.
+        easy_button.pack(padx=20, pady=5)
+        if gamestate == "newgame":
+            easy_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
+
+        # Medium Mode Button
+        medium_button = tk.Button(popup_window, text="Medium Mode", font=("Arial", 12), command=lambda: [change_mode("medium"), root.attributes('-disabled', 0), popup_window.destroy()])
+        medium_button.pack(padx=20, pady=5)
+        if gamestate == "newgame":
+            medium_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
+
+        # Hard Mode Button
+        hard_button = tk.Button(popup_window, text="Hard Mode", font=("Arial", 12), command=lambda: [change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
+        hard_button.pack(padx=20, pady=5)
+        if gamestate == "newgame":
+            hard_button = tk.Button(popup_window, text="Hard Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
+
+        # Main Menu Button
+        main_menu_button = tk.Button(popup_window, text="Main Menu", bg="red", fg="black", font=("Arial", 15), command=lambda: [go_back(), root.destroy])
+        main_menu_button.pack(padx=30, pady=8)
 
     # Game modes
     def change_mode(mode):
@@ -791,9 +797,9 @@ def SudokuGame():
         timer("start")
 
         if current_username != None: # If the player is a registered user
-            increment_games_started(current_username, current_difficulty)
-            update_win_rate(current_username, current_difficulty)
-            update_game_state(current_difficulty, sudoku_grid, solved_grid) # Update the game state
+            increment_games_started(current_username, current_difficulty) # Update game statistics
+            update_win_rate(current_username, current_difficulty) 
+            update_game_state(current_difficulty, sudoku_grid, solved_grid) # Update game state
 
     # Print Sudoku grids for debugging or answers
     def print_grids():
@@ -804,6 +810,10 @@ def SudokuGame():
         print("Solved Grid")
         for rows in solved_grid:
             print(rows)
+
+    def on_closing():
+        update_game_state(current_difficulty, sudoku_grid, solved_grid)
+        root.destroy() # Destroy the root window
 
     # Function to go back to the designated menu
     def go_back():
@@ -947,14 +957,23 @@ def SudokuGame():
     time_label = tk.Label(main_frame, text="00:00", bg=ROOT_BACKGROUND_COLOR, fg=FOREGROUND_COLOR, font=ALL_FONTS)
     time_label.grid(row=GRID_SIZE + 1, column=0, columnspan=GRID_SIZE)
 
-    entry_widgets = []
-    for i in range(GRID_SIZE):
-        row = []
-        for j in range(GRID_SIZE):
-            row.append(None)
-        entry_widgets.append(row)
+    button_frame = tk.Frame(main_frame, bg=ROOT_BACKGROUND_COLOR)
+    button_frame.grid(row=GRID_SIZE + 2, column=0, columnspan=GRID_SIZE)
 
-    # When the program starts, the puzzle is shown directly. We are calling these functions here immediately for that reason.
+    style = ttk.Style()
+    style.configure("TButton", background=ROOT_BACKGROUND_COLOR, foreground="black")
+    style.map("TButton",
+          background=[("pressed", ROOT_BACKGROUND_COLOR)],
+          foreground=[("pressed", "black")])
+
+    ttk.Button(button_frame, text="Pause", style = "TButton", command=toggle_pause_continue).grid(row=0, column=0, padx=5)
+    ttk.Button(button_frame, text="Note", style = "TButton", command=toggle_annotation_mode).grid(row=0, column=1, padx=5)
+    ttk.Button(button_frame, text="Hint", style = "TButton", command=give_hint).grid(row=0, column=2, padx=5)
+    ttk.Button(button_frame, text="Back", style = "TButton", command=go_back).grid(row=1, column=0, padx=5)
+    ttk.Button(button_frame, text="New Game", style = "TButton", command=lambda: message_box("newgame")).grid(row=1, column=2, padx=5)
+    ttk.Button(button_frame, text="Print", style = "TButton", command=print_grids).grid(row=2, column=1, padx=5)
+
+    # When the program starts, the puzzle is shown directly. Those are the necessary functions for that to happen.
     validation_command = root.register(input_validator)
     draw_grid()
     try:
@@ -972,22 +991,6 @@ def SudokuGame():
         pass
     timer("start")
 
-    button_frame = tk.Frame(main_frame, bg=ROOT_BACKGROUND_COLOR)
-    button_frame.grid(row=GRID_SIZE + 2, column=0, columnspan=GRID_SIZE)
-
-    style = ttk.Style()
-    style.configure("TButton", background=ROOT_BACKGROUND_COLOR, foreground="black")
-    style.map("TButton",
-          background=[("pressed", ROOT_BACKGROUND_COLOR)],
-          foreground=[("pressed", "black")])
-
-    ttk.Button(button_frame, text="Pause", style = "TButton", command=toggle_pause_continue).grid(row=0, column=0, padx=5)
-    ttk.Button(button_frame, text="Note", style = "TButton", command=toggle_annotation_mode).grid(row=0, column=1, padx=5)
-    ttk.Button(button_frame, text="Hint", style = "TButton", command=give_hint).grid(row=0, column=2, padx=5)
-    ttk.Button(button_frame, text="Back", style = "TButton", command=go_back).grid(row=1, column=0, padx=5)
-    ttk.Button(button_frame, text="New Game", style = "TButton", command=lambda: message_box("newgame")).grid(row=1, column=2, padx=5)
-    ttk.Button(button_frame, text="Print", style = "TButton", command=print_grids).grid(row=2, column=1, padx=5)
-    
     root.mainloop()
 
 if __name__ == "__main__":
