@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import SudokuPuzzleGenerator
 import random, sys, subprocess, json, pygame
+import customtkinter as ctk
 from StatisticSaver import increment_games_started, update_win_rate, increment_games_won, increment_wins_no_mistakes, update_win_streak, update_times
 
 def SudokuGame():
@@ -721,63 +722,203 @@ def SudokuGame():
                     cell.bind("<Tab>", on_tab) # Rebind tab key  
 
     # Message box popup for different game states
-    def message_box(gamestate):   
+    def message_box(gamestate):
+        # Make sure these variables exist in the outer scope or pass them as needed
         nonlocal game_state, time_elapsed, lives, hint_count
-        root.focus() # Focus on the root window (Lose focus on the entry widget when the popup appears)
-        root.attributes("-disabled", 1) # Disables the grid from interaction
+
+        # Disable interaction with the main window
+        root.focus()
+        root.attributes("-disabled", True,)
         
-        popup_window = tk.Toplevel() # Create a new window
-        popup_window.geometry("400x300") # Set the dimensions of the window
-        popup_window.resizable(False, False)  # Disable resizing
-        popup_window.protocol("WM_DELETE_WINDOW", lambda: True) # Disable delete window
-        popup_window.attributes("-toolwindow", True) # Disable windows tools
-        
+        # Create the popup window
+        popup_window = ctk.CTkToplevel(root)
+        popup_window.geometry("400x300")
+        popup_window.resizable(False, False)
+        popup_window.configure(fg_color="#f0f0f0")
+        popup_window.protocol("WM_DELETE_WINDOW", lambda: None)  # Prevent closing via "X" button
+
+        # (Optional) If you want to hide/disable window decorations:
+        # popup_window.overrideredirect(True)
+
+        # Define a consistent style for labels
+        label_font = ctk.CTkFont(size=14, weight="normal")
+        label_color = "#333333"
+
+        # Define a consistent style for buttons
+        button_accent = {
+            "fg_color": "#0078D4",
+            "text_color": "#FFFFFF",
+            "hover_color": "#005999"
+        }
+        button_width = 200
+        button_font = ctk.CTkFont(size=12, weight="bold")
+
+        # Helper function to close and re-enable the root
+        def close_popup():
+            root.attributes("-disabled", False)
+            popup_window.destroy()
+
+        # Handle different game states
         if gamestate == "win":
-            lives = None # Update those key value to None to make it not possible to continue from current game state. This will be exploited in LoggedInMenu when trying to continue.
-            hint_count = None
-            update_game_state(current_difficulty, sudoku_grid, solved_grid)
-            
-            popup_window.title("Congratulations!")  # Set the title of the window
-            tk.Label(popup_window, text="Congratulations! You won the game!", font=("Arial", 12)).pack(pady=20)
-            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
-            
-        elif gamestate == "lose":
             lives = None
             hint_count = None
             update_game_state(current_difficulty, sudoku_grid, solved_grid)
 
-            reset_win_streak() # Reset the win streak if the player loses
+            popup_window.title("Congratulations!")
+            ctk.CTkLabel(
+                popup_window,
+                text="Congratulations! You won the game!",
+                font=label_font,
+                text_color=label_color
+            ).pack(pady=20)
+
+            ctk.CTkLabel(
+                popup_window,
+                text="Choose a new game",
+                font=label_font,
+                text_color=label_color
+            ).pack(pady=15)
+
+        elif gamestate == "lose":
+            lives = None
+            hint_count = None
+            update_game_state(current_difficulty, sudoku_grid, solved_grid)
+            reset_win_streak()
+
             popup_window.title("Game Over")
-            tk.Label(popup_window, text="You ran out of lives! Better Luck Next Time", font=("Arial", 12)).pack(pady=20)
-            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
+            ctk.CTkLabel(
+                popup_window,
+                text="You ran out of lives! Better Luck Next Time.",
+                font=label_font,
+                text_color=label_color
+            ).pack(pady=20)
+
+            ctk.CTkLabel(
+                popup_window,
+                text="Choose a new game",
+                font=label_font,
+                text_color=label_color
+            ).pack(pady=15)
+
         elif gamestate == "newgame":
             popup_window.title("New Game")
-            tk.Label(popup_window, text="Choose a new game", font=("Arial", 12)).pack(pady=15)
+            ctk.CTkLabel(
+                popup_window,
+                text="Choose a new game",
+                font=label_font,
+                text_color=label_color
+            ).pack(pady=15)
 
-            close_button = tk.Button(popup_window, text="Close", font=("Arial", 12), command=lambda: [root.attributes('-disabled', 0), popup_window.destroy()])
-            close_button.pack(padx=20, pady=5)
- 
+            close_btn = ctk.CTkButton(
+                popup_window,
+                text="Close",
+                width=button_width,
+                font=button_font,
+                command=close_popup,
+                **button_accent
+            )
+            close_btn.pack(pady=5)
+
         # Easy Mode Button
-        easy_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()]) # Call easy mode, re-enable the root and destroy the popup in this order.
-        easy_button.pack(padx=20, pady=5)
         if gamestate == "newgame":
-            easy_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
+            # If "newgame", reset streak before changing mode
+            easy_btn = ctk.CTkButton(
+                popup_window,
+                text="Easy Mode",
+                width=button_width,
+                font=button_font,
+                command=lambda: [
+                    reset_win_streak(),
+                    change_mode("easy"),
+                    close_popup()
+                ],
+                **button_accent
+            )
+        else:
+            # Otherwise, go straight to changing mode
+            easy_btn = ctk.CTkButton(
+                popup_window,
+                text="Easy Mode",
+                width=button_width,
+                font=button_font,
+                command=lambda: [
+                    change_mode("easy"),
+                    close_popup()
+                ],
+                **button_accent
+            )
+        easy_btn.pack(pady=5)
 
         # Medium Mode Button
-        medium_button = tk.Button(popup_window, text="Medium Mode", font=("Arial", 12), command=lambda: [change_mode("medium"), root.attributes('-disabled', 0), popup_window.destroy()])
-        medium_button.pack(padx=20, pady=5)
         if gamestate == "newgame":
-            medium_button = tk.Button(popup_window, text="Easy Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
+            medium_btn = ctk.CTkButton(
+                popup_window,
+                text="Medium Mode",
+                width=button_width,
+                font=button_font,
+                command=lambda: [
+                    reset_win_streak(),
+                    change_mode("medium"),
+                    close_popup()
+                ],
+                **button_accent
+            )
+        else:
+            medium_btn = ctk.CTkButton(
+                popup_window,
+                text="Medium Mode",
+                width=button_width,
+                font=button_font,
+                command=lambda: [
+                    change_mode("medium"),
+                    close_popup()
+                ],
+                **button_accent
+            )
+        medium_btn.pack(pady=5)
 
         # Hard Mode Button
-        hard_button = tk.Button(popup_window, text="Hard Mode", font=("Arial", 12), command=lambda: [change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
-        hard_button.pack(padx=20, pady=5)
         if gamestate == "newgame":
-            hard_button = tk.Button(popup_window, text="Hard Mode", font=("Arial", 12), command=lambda: [reset_win_streak(), change_mode("easy"), root.attributes('-disabled', 0), popup_window.destroy()])
+            hard_btn = ctk.CTkButton(
+                popup_window,
+                text="Hard Mode",
+                width=button_width,
+                font=button_font,
+                command=lambda: [
+                    reset_win_streak(),
+                    change_mode("hard"),
+                    close_popup()
+                ],
+                **button_accent
+            )
+        else:
+            hard_btn = ctk.CTkButton(
+                popup_window,
+                text="Hard Mode",
+                width=button_width,
+                font=button_font,
+                command=lambda: [
+                    change_mode("hard"),
+                    close_popup()
+                ],
+                **button_accent
+            )
+        hard_btn.pack(pady=5)
 
         # Main Menu Button
-        main_menu_button = tk.Button(popup_window, text="Main Menu", bg="red", fg="black", font=("Arial", 15), command=lambda: [go_back(), root.destroy])
-        main_menu_button.pack(padx=30, pady=8)
+        # If you want a distinct color for this "Main Menu" button, you can set it here
+        main_menu_btn = ctk.CTkButton(
+            popup_window,
+            text="Main Menu",
+            width=button_width,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="red",
+            text_color="black",
+            hover_color="#cc0000",
+            command=lambda: [go_back(), root.destroy()]
+        )
+        main_menu_btn.pack(pady=10)
+
 
     # Game modes
     def change_mode(mode):
