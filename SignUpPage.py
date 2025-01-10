@@ -1,5 +1,6 @@
 import tkinter as tk
 import json, re, sys, subprocess
+import customtkinter as ctk
 
 def SignUpPage():
     def store_inputs():
@@ -94,10 +95,10 @@ def SignUpPage():
     def toggle_password_visibility(entry_field, toggle_button):
         if entry_field.cget('show') == '*':
             entry_field.config(show='')
-            toggle_button.config(text="Hide")
+            toggle_button.configure(text="Hide")
         else:
             entry_field.config(show='*')
-            toggle_button.config(text="Show")
+            toggle_button.configure(text="Show")
 
     def toggle_main_password():
         toggle_password_visibility(password_field, password_toggle_button)
@@ -121,51 +122,54 @@ def SignUpPage():
     root.resizable(True, True)
     root.configure(bg="#f0f0f0")
 
-    frame = tk.Frame(root, bg="white")
-    frame.place(relx=0.5, rely=0.5, anchor="center")  # Center the frame
+    frame = tk.Frame(root, bg="#f0f0f0")
+    frame.place(relx=0.5, rely=0.5, anchor="center") 
 
     USERNAME_REGEX = r"^[a-zA-Z0-9]{3,20}$"  # 3-20 characters, alphanumeric 
     PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}\[\]:;\"'<>,.?/~`-]).{8,}$" # Contains at least one lowercase letter, one uppercase letter, one digit, one special character and is atleast 8 characters long.
 
     # UI Elements
-    title_label = tk.Label(frame, text="CREATE YOUR ACCOUNT", font=("Arial", 24, "bold"), fg="#ffffff", bg="#0078d4")
-    title_label.grid(row=0, column=0, columnspan=3, pady=(10, 20))
+    button_width = 200
+    button_accent = {"fg_color": "#0078D4", "text_color": "#FFFFFF", "hover_color": "#005999"}
 
-    username_label = tk.Label(frame, text="Enter A Username:", font=("Arial", 12), bg="white")
+    title_label = ctk.CTkLabel(frame, text="CREATE YOUR ACCOUNT", font=ctk.CTkFont(size=36, weight="bold"), text_color="#333333" )
+    title_label.grid(row=0, column=0, columnspan=3, pady=(20, 20))
+
+    username_label = ctk.CTkLabel(frame, text="Enter A Username:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#333333")
     username_label.grid(row=1, column=0, columnspan=3, sticky="w", pady=(5, 0), padx=10)
 
     username_field = tk.Entry(frame, justify='left', bg="#f7f7f7", font=("Arial", 12), width=40, bd=1, relief=tk.SOLID)
     username_field.grid(row=2, column=0, columnspan=2, pady=(0, 10), padx=10)
 
-    password_label = tk.Label(frame, text="Enter Your Password:", font=("Arial", 12), bg="white")
+    password_label = ctk.CTkLabel(frame, text="Enter Your Password:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#333333")
     password_label.grid(row=3, column=0, columnspan=3, sticky="w", pady=(5, 0), padx=10)
 
     password_field = tk.Entry(frame, justify='left', bg="#f7f7f7", font=("Arial", 12), show="*", width=40, bd=1, relief=tk.SOLID)
     password_field.grid(row=4, column=0, columnspan=2, pady=(0, 10), padx=10)
 
-    password_toggle_button = tk.Button(frame, text="Show", font=("Arial", 10), relief='flat', bg="#0078d4", fg="white", command=toggle_main_password)
-    password_toggle_button.grid(row=4, column=2, pady=(0, 10), padx=10)
+    password_toggle_button = ctk.CTkButton(frame, text="Show", font=("Arial", 16,),text_color="black", bg_color="#f0f0f0", fg_color="#f0f0f0", width=50, command=toggle_main_password)
+    password_toggle_button.grid(row=4, column=2, pady=(0, 10), padx=0)
 
-    verify_password_label = tk.Label(frame, text="Verify Your Password:", font=("Arial", 12), bg="white")
+    verify_password_label = ctk.CTkLabel(frame, text="Verify Your Password:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#333333")
     verify_password_label.grid(row=5, column=0, columnspan=3, sticky="w", pady=(5, 0), padx=10)
 
     verify_password_field = tk.Entry(frame, justify='left', bg="#f7f7f7", font=("Arial", 12), show="*", width=40, bd=1, relief=tk.SOLID)
     verify_password_field.grid(row=6, column=0, columnspan=2, pady=(0, 10), padx=10)
 
-    verify_password_toggle_button = tk.Button(frame, text="Show", font=("Arial", 10), relief='flat', bg="#0078d4", fg="white", command=toggle_verify_password)
-    verify_password_toggle_button.grid(row=6, column=2, pady=(0, 10), padx=10)
+    verify_password_toggle_button = ctk.CTkButton(frame, text="Show", font=("Arial", 16,),text_color="black", bg_color="#f0f0f0", fg_color="#f0f0f0", width=50, command=toggle_verify_password)
+    verify_password_toggle_button.grid(row=6, column=2, pady=(0, 10), padx=0)
 
-    signup_button = tk.Button(frame, text="Sign Up", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=store_inputs)
-    signup_button.grid(row=7, column=0, columnspan=3, pady=(10, 10))
+    signup_button = ctk.CTkButton(frame, text="Sign Up", font=("Arial", 18), width=button_width, **button_accent, command=store_inputs)
+    signup_button.grid(row=8, column=0, columnspan=3, pady=(10, 10))
 
-    status_label = tk.Label(frame, text="", font=("Arial", 10), bg="white")
-    status_label.grid(row=10, column=0, columnspan=3, pady=(5, 5))
+    status_label = tk.Label(frame, text="", font=("Arial", 10), bg="#f0f0f0")
+    status_label.grid(row=7, column=0, columnspan=3, pady=(5, 5))
 
-    back_button = tk.Button(frame, text="Back", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=go_back)
-    back_button.grid(row=8, column=0, columnspan=3, pady=(10,10))
+    back_button = ctk.CTkButton(frame, text="Back", font=("Arial", 18), width=button_width, **button_accent, command=go_back)
+    back_button.grid(row=9, column=0, columnspan=3, pady=(10,10))
 
-    login_button = tk.Button(frame, text="Already have an account? Login here.", font=("Arial", 10), bg="white", fg="#0078d4", relief='flat', command=open_login_page)
-    login_button.grid(row=9, column=0, columnspan=3, pady=(10, 10))
+    login_button = tk.Button(frame, text="Already have an account? Login here.", font=("Arial", 10), bg="#f0f0f0", fg="#0078d4", relief='flat', command=open_login_page)
+    login_button.grid(row=10, column=0, columnspan=3, pady=(10, 10))
 
     root.mainloop()
 
