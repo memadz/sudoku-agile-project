@@ -69,7 +69,7 @@ def StatisticsPage():
 
     def go_back():
         root.destroy()
-        subprocess.run([sys.executable, "LoggedInMenu.py", current_username])
+        subprocess.run([sys.executable, "MainMenu.py", current_username])
 
     back_button = tk.Button(frame, text="Back", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=go_back)
     back_button.pack(padx=5)
@@ -81,4 +81,4 @@ if __name__ == "__main__":
     try:
         StatisticsPage()
     except Exception:
-        print("Please run the main program to access the statistics page.")
+        print("Please run the program in \"MainMenu\" to access the statistics page.")
