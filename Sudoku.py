@@ -963,7 +963,7 @@ def SudokuGame():
             subprocess.run([sys.executable, "MainMenu.py"])
         else:
             on_closing()
-            subprocess.run([sys.executable, "LoggedInMenu.py", current_username])
+            subprocess.run([sys.executable, "MainMenu.py", current_username])
 
     # Required setup for the game to run
     try:
