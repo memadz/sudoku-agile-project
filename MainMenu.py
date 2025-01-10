@@ -165,5 +165,4 @@ if __name__ == "__main__":
     except Exception:
         current_username = "Guest"
 
-    print(current_username)
     MainMenu(current_username)

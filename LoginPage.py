@@ -78,7 +78,7 @@ def LoginPage():
     toggle_button = ctk.CTkButton(frame, text="Show", font=("Arial", 16,),text_color="black", bg_color="#f0f0f0", fg_color="#f0f0f0", width=50, command=toggle_password_visibility)
     toggle_button.grid(row=4, column=2)
 
-    signin_button = ctk.CTkButton(frame, text="Sign In", font=("Arial", 18), width=button_width, **button_accent, command=go_back)
+    signin_button = ctk.CTkButton(frame, text="Sign In", font=("Arial", 18), width=button_width, **button_accent, command=store_inputs)
     signin_button.grid(row=8, column=0, columnspan=3, pady=(10,10))
 
     status_label = tk.Label(frame, text="", font=("Arial", 10), bg="#f0f0f0")
