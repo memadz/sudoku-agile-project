@@ -41,6 +41,7 @@ def MainMenu():
         btn_width = 250
         ctk.CTkButton(
             frame, text="Easy",
+            font=("Arial", 15),
             width= btn_width,
             command=lambda: open_sudoku_game("Guest", "easy"),
             **button_accent
@@ -48,6 +49,7 @@ def MainMenu():
 
         ctk.CTkButton(
             frame, text="Medium",
+            font=("Arial", 15),
             width=btn_width,
             command=lambda: open_sudoku_game("Guest", "medium"),
             **button_accent
@@ -55,6 +57,7 @@ def MainMenu():
 
         ctk.CTkButton(
             frame, text="Hard",
+            font=("Arial", 15),
             width=btn_width,
             command=lambda: open_sudoku_game("Guest", "hard"),
             **button_accent
