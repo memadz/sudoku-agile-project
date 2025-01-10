@@ -3,11 +3,12 @@ from tkinter import ttk
 import sys, subprocess, json
 
 def SettingsPage():
-    current_username = None
-    if len(sys.argv) > 1:  # Check if there is at least one command line argument passed
-        current_username = sys.argv[1]  # Retrieve the username, passed as an argument from loginPage to loggedinPage to this file
+    try:
+        current_username = sys.argv[1]
+    except Exception:
+        current_username = "Guest"
 
-    # Start point # here because i think its easier to understand control flow
+    # Start point #
     
     root = tk.Tk()
     root.title("Settings")
@@ -22,7 +23,7 @@ def SettingsPage():
     title_label.grid(row=0, column=0, columnspan=100, pady=(10, 20))
 
     try:
-        if current_username == None:
+        if current_username == "Guest":
             with open("Guest.json", "r") as f:
                 data = json.load(f)
                 
@@ -52,7 +53,7 @@ def SettingsPage():
         print(f"Theme updated to: {dropdown_theme.get()}")
         print(f"Font updated to: {dropdown_font.get()}")
 
-        if current_username == None:  # If the user is a guest, creates new JSON file that keeps it.
+        if current_username == "Guest":  # If the user is a guest, creates new JSON file that keeps it.
             with open("Guest.json", "w") as f:
                 new_guest = {"theme": dropdown_theme.get(), "font": dropdown_font.get()}
                 json.dump(new_guest, f, indent=4)
@@ -90,12 +91,12 @@ def SettingsPage():
 
 
     def go_back():
-        if current_username == None:
+        if current_username == "Guest":
             root.destroy()
             subprocess.run([sys.executable, "MainMenu.py"])
         else:
             root.destroy()
-            subprocess.run([sys.executable, "LoggedInMenu.py", current_username])
+            subprocess.run([sys.executable, "MainMenu.py", current_username])
 
     back_button = tk.Button(frame, text="Back", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=go_back)
     back_button.grid(row=8, column=0, columnspan=3, pady=50)
