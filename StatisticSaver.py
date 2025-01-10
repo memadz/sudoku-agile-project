@@ -43,6 +43,16 @@ def save_user_statistics(username, statistics, current_difficulty):
     else:
         print(f"User '{username}' not found. Statistics not saved.")
 
+def increment_games_started(username, current_difficulty):
+    statistics = load_user_statistics(username, current_difficulty) # Call the load function, store the values in variable "statistics"
+    statistics["games_started"] += 1 # Increment by 1 when game is won.
+    save_user_statistics(username, statistics, current_difficulty) # Call the save function, save the statistics.
+
+def update_win_rate(username, current_difficulty):
+    statistics = load_user_statistics(username, current_difficulty) # Call the load function, store the values in variable "statistics"
+    statistics["win_rate"] = statistics["games_won"] / statistics["games_started"]
+    save_user_statistics(username, statistics, current_difficulty) # Call the save function, save the statistics.
+
 
 def increment_games_won(username, current_difficulty):
     statistics = load_user_statistics(username, current_difficulty) # Call the load function, store the values in variable "statistics"
@@ -57,7 +67,7 @@ def increment_wins_no_mistakes(username, won, no_mistakes, current_difficulty):
     save_user_statistics(username, statistics, current_difficulty)
 
 
-def update_win_streak(username, won, current_win_streak, current_difficulty):
+def update_win_streak(username, won, current_difficulty):
     statistics = load_user_statistics(username, current_difficulty)
 
     if won:

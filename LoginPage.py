@@ -32,10 +32,13 @@ def LoginPage():
             password_field.config(show='*')
             toggle_button.config(text="Show")
 
-
     def open_sign_up_page():
         root.destroy()
         subprocess.run([sys.executable, "SignUpPage.py"])
+
+    def go_back():
+        root.destroy()
+        subprocess.run([sys.executable, "MainMenu.py"])
 
     # Start point #
 
@@ -52,8 +55,6 @@ def LoginPage():
     title_label = tk.Label(frame, text="Login", font=("Arial", 24, "bold"), fg="#ffffff", bg="#0078d4")
     title_label.grid(row=0, column=0, columnspan=100, pady=(10, 20))
 
-
-
     username_label = tk.Label(frame, text="Enter Your Username:", font=("Arial", 12), bg="white")
     username_label.grid(row=1, column=0, sticky="w", padx=10, pady=(5, 5))
 
@@ -62,8 +63,6 @@ def LoginPage():
 
     email_match_label = tk.Label(frame, text='', font=("Arial", 10), bg="white")
     email_match_label.grid(row=2, column=1, sticky="w")
-
-
 
     password_label = tk.Label(frame, text="Enter Your Password:", font=("Arial", 12), bg="white")
     password_label.grid(row=3, column=0, sticky="w", padx=10, pady=(5, 5))
@@ -74,19 +73,17 @@ def LoginPage():
     password_match_label = tk.Label(frame, text='', font=("Arial", 10), bg="white")
     password_match_label.grid(row=4, column=1, sticky="w")
 
-
-
     toggle_button = tk.Button(frame, text="Show", font=("Arial", 10), relief='flat', bg="#0078d4", fg="white", command=toggle_password_visibility)
     toggle_button.grid(row=4, column=2, padx=10)
 
-
-    signin_button = tk.Button(frame, text="Sign In", font=("Arial", 12), bg="#0078d4", fg="white", relief='flat', width=20, command=store_inputs)
+    signin_button = tk.Button(frame, text="Sign In", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=store_inputs)
     signin_button.grid(row=7, column=0, columnspan=100, pady=(10, 10))
-
 
     status_label = tk.Label(frame, text="", font=("Arial", 10), bg="white")
     status_label.grid(row=5, column=0, columnspan=3, pady=(5, 5))
 
+    back_button = tk.Button(frame, text="Back", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=go_back)
+    back_button.grid(row=8, column=0, columnspan=3, pady=(10,10))
 
     create_account_button = tk.Button(frame, text="Create a New Account", font=("Arial", 10), bg="white", fg="#0078d4", width=20, relief='flat', command=open_sign_up_page)
     create_account_button.grid(row=6, column=0, columnspan=100, pady=(10, 10))
