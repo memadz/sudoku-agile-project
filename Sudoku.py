@@ -801,7 +801,7 @@ def SudokuGame():
             update_win_rate(current_username, current_difficulty) 
             update_game_state(current_difficulty, sudoku_grid, solved_grid) # Update game state
 
-    # Print Sudoku grids for debugging or answers
+    # Print Sudoku grids for debugging or answers. Remove comment on line 974 to use.
     def print_grids():
         print("Sudoku Grid")
         for rows in sudoku_grid:
@@ -971,7 +971,7 @@ def SudokuGame():
     ttk.Button(button_frame, text="Hint", style = "TButton", command=give_hint).grid(row=0, column=2, padx=5)
     ttk.Button(button_frame, text="Back", style = "TButton", command=go_back).grid(row=1, column=0, padx=5)
     ttk.Button(button_frame, text="New Game", style = "TButton", command=lambda: message_box("newgame")).grid(row=1, column=2, padx=5)
-    ttk.Button(button_frame, text="Print", style = "TButton", command=print_grids).grid(row=2, column=1, padx=5)
+    #ttk.Button(button_frame, text="Print", style = "TButton", command=print_grids).grid(row=2, column=1, padx=5) # Uncomment to enable button.
 
     # When the program starts, the puzzle is shown directly. Those are the necessary functions for that to happen.
     validation_command = root.register(input_validator)

@@ -155,7 +155,7 @@ def SignUpPage():
     verify_password_toggle_button = tk.Button(frame, text="Show", font=("Arial", 10), relief='flat', bg="#0078d4", fg="white", command=toggle_verify_password)
     verify_password_toggle_button.grid(row=6, column=2, pady=(0, 10), padx=10)
 
-    signup_button = tk.Button(frame, text="Sign Up", font=("Arial", 12), bg="#0078d4", fg="white", relief='flat', width=20, command=store_inputs)
+    signup_button = tk.Button(frame, text="Sign Up", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=store_inputs)
     signup_button.grid(row=7, column=0, columnspan=3, pady=(10, 10))
 
     status_label = tk.Label(frame, text="", font=("Arial", 10), bg="white")

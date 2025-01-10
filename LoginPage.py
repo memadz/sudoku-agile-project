@@ -76,7 +76,7 @@ def LoginPage():
     toggle_button = tk.Button(frame, text="Show", font=("Arial", 10), relief='flat', bg="#0078d4", fg="white", command=toggle_password_visibility)
     toggle_button.grid(row=4, column=2, padx=10)
 
-    signin_button = tk.Button(frame, text="Sign In", font=("Arial", 12), bg="#0078d4", fg="white", relief='flat', width=20, command=store_inputs)
+    signin_button = tk.Button(frame, text="Sign In", font=("Arial", 12), bg="#0078d4", fg="white", width=20, command=store_inputs)
     signin_button.grid(row=7, column=0, columnspan=100, pady=(10, 10))
 
     status_label = tk.Label(frame, text="", font=("Arial", 10), bg="white")

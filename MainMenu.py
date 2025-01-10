@@ -1,6 +1,5 @@
 import tkinter as tk
 import sys, subprocess
-from Settings import SettingsPage
 
 
 # Main Menu Function
