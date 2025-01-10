@@ -15,7 +15,7 @@ def LoginPage():
 
                         root.destroy()
 
-                        subprocess.run([sys.executable, "LoggedInMenu.py", username])
+                        subprocess.run([sys.executable, "MainMenu.py", username])
 
                     else:
                         status_label.config(text="Username or password is incorrect.", fg="red")
