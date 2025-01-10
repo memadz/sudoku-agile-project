@@ -27,10 +27,10 @@ def MainMenu(current_username):
             ctk.CTkButton(frame, text="Hard", width=btn_width, command=lambda: open_sudoku_game("Guest", "hard"), **button_accent).pack(pady=3)
         else:
             ctk.CTkButton(frame, text="Continue", width= btn_width, command=continue_game, **button_accent).pack(pady=3) 
-            ctk.CTkButton(frame, text="Easy", width= btn_width, command=lambda: open_sudoku_game("easy"), **button_accent).pack(pady=3) 
-            ctk.CTkButton(frame, text="Medium", width=btn_width, command=lambda: open_sudoku_game("medium"), **button_accent).pack(pady=3)
-            ctk.CTkButton(frame, text="Hard", width=btn_width, command=lambda: open_sudoku_game("hard"), **button_accent).pack(pady=3)
-    
+            ctk.CTkButton(frame, text="Easy", width= btn_width, command=lambda: open_sudoku_game(current_username, "easy"), **button_accent).pack(pady=3) 
+            ctk.CTkButton(frame, text="Medium", width=btn_width, command=lambda: open_sudoku_game(current_username, "medium"), **button_accent).pack(pady=3)
+            ctk.CTkButton(frame, text="Hard", width=btn_width, command=lambda: open_sudoku_game(current_username, "hard"), **button_accent).pack(pady=3)
+
         difficulty_window.grab_set()  # Make the popup window modal (The main root window will become uninteractable)
 
     def open_sudoku_game(current_username, difficulty):
@@ -59,6 +59,7 @@ def MainMenu(current_username):
     
         root.destroy()
         subprocess.run([sys.executable, "Sudoku.py", current_username, difficulty]) # Pass the current_username as an argument to the Sudoku file
+
     def continue_game():
         try:
             with open("Users.json", "r") as f:
@@ -102,7 +103,7 @@ def MainMenu(current_username):
 
     def open_settings():
         root.destroy()
-        subprocess.run([sys.executable, "Settings.py"])
+        subprocess.run([sys.executable, "Settings.py", current_username])
 
     def open_statistics():
         root.destroy()
@@ -127,8 +128,8 @@ def MainMenu(current_username):
     frame = ctk.CTkFrame(root, corner_radius=0, fg_color="#f0f0f0")
     frame.pack(expand=True, fill="both") # Center the frame
 
-    frame.grid_rowconfigure(0, weight=1) 
-    frame.grid_rowconfigure(1, weight=3) 
+    frame.grid_rowconfigure(0, weight=1)
+    frame.grid_rowconfigure(1, weight=3)
     frame.grid_rowconfigure(2, weight=1)
     frame.grid_columnconfigure(0, weight=1)
 
@@ -144,12 +145,12 @@ def MainMenu(current_username):
     button_accent = {"fg_color": "#0078D4", "text_color": "#FFFFFF", "hover_color": "#005999"}
 
     if current_username == "Guest":
-        ctk.CTkButton(button_frame, text="Play as Guest", command=open_difficulty_selection, width=button_width, font=button_font, **button_accent).grid(row=0, column=0, pady=10, sticky="n")
+        ctk.CTkButton(button_frame, text="Play as Guest", command=lambda: open_difficulty_selection(current_username), width=button_width, font=button_font, **button_accent).grid(row=0, column=0, pady=10, sticky="n")
         ctk.CTkButton(button_frame, text="Log In", command=open_login_page, width=button_width, font=button_font, **button_accent).grid(row=1, column=0, pady=10, sticky="n")
         ctk.CTkButton(button_frame, text="Sign Up", command=open_sign_up_page, width=button_width, font=button_font, **button_accent).grid(row=2, column=0, pady=10, sticky="n")
         ctk.CTkButton(button_frame, text="Settings", command=open_settings, width=button_width, font=button_font, **button_accent).grid(row=3, column=0, pady=10, sticky="n")
     else:
-        ctk.CTkButton(button_frame, text="Play", command=open_difficulty_selection, width=button_width, font=button_font, **button_accent).grid(row=0, column=0, pady=10, sticky="n")
+        ctk.CTkButton(button_frame, text="Play", command=lambda: open_difficulty_selection(current_username), width=button_width, font=button_font, **button_accent).grid(row=0, column=0, pady=10, sticky="n")
         ctk.CTkButton(button_frame, text="Settings", command=open_settings, width=button_width, font=button_font, **button_accent).grid(row=1, column=0, pady=10, sticky="n")
         ctk.CTkButton(button_frame, text="Statistics", command=open_statistics, width=button_width, font=button_font, **button_accent).grid(row=2, column=0, pady=10, sticky="n")
         ctk.CTkButton(button_frame, text="Log Out", command=open_main_menu, width=button_width, font=button_font, **button_accent).grid(row=3, column=0, pady=10, sticky="n")
@@ -164,4 +165,5 @@ if __name__ == "__main__":
     except Exception:
         current_username = "Guest"
 
+    print(current_username)
     MainMenu(current_username)
