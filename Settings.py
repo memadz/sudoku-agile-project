@@ -4,9 +4,10 @@ import customtkinter as ctk
 import sys, subprocess, json
 
 def SettingsPage():
-    current_username = None
-    if len(sys.argv) > 1:
+    try:
         current_username = sys.argv[1]
+    except Exception:
+        current_username = "Guest"
     
     root = tk.Tk()
     root.title("Settings")
@@ -94,7 +95,7 @@ def SettingsPage():
             subprocess.run([sys.executable, "MainMenu.py"])
         else:
             root.destroy()
-            subprocess.run([sys.executable, "LoggedInMenu.py", current_username])
+            subprocess.run([sys.executable, "MainMenu.py", current_username])
 
     back_button = ctk.CTkButton(frame, text="Back", font=("Arial", 18), width=200, fg_color="#0078D4", command=go_back, corner_radius=5)
     back_button.grid(row=8, column=0, columnspan=3, pady=50)
