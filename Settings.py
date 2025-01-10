@@ -22,7 +22,7 @@ def SettingsPage():
     title_label.grid(row=0, column=0, columnspan=100, pady=(10, 20))
 
     try:
-        if current_username == None:
+        if current_username == "Guest":
             with open("Guest.json", "r") as f:
                 data = json.load(f)
                 
@@ -52,7 +52,7 @@ def SettingsPage():
         print(f"Theme updated to: {dropdown_theme.get()}")
         print(f"Font updated to: {dropdown_font.get()}")
 
-        if current_username == None:
+        if current_username == "Guest":
             with open("Guest.json", "w") as f:
                 new_guest = {"theme": dropdown_theme.get(), "font": dropdown_font.get()}
                 json.dump(new_guest, f, indent=4)
@@ -90,7 +90,7 @@ def SettingsPage():
 
 
     def go_back():
-        if current_username == None:
+        if current_username == "Guest":
             root.destroy()
             subprocess.run([sys.executable, "MainMenu.py"])
         else:
