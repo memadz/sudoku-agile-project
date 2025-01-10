@@ -22,7 +22,7 @@ def LoginPage():
                 return
 
         except FileNotFoundError:
-            email_match_label.config(text="No users registered yet.", fg="red")
+            status_label.config(text="No users registered yet.", fg="red")
         
     def toggle_password_visibility():
         if password_field.cget('show') == '*':
@@ -63,17 +63,11 @@ def LoginPage():
     username_field = tk.Entry(frame, justify='left', bg="#f7f7f7", font=("Arial", 12), width=40, bd=1, relief=tk.SOLID)
     username_field.grid(row=2, column=0,sticky="w" ,pady=10, padx=10)
 
-    email_match_label = tk.Label(frame, text='', font=("Arial", 10), bg="#f0f0f0")
-    email_match_label.grid(row=2, column=1, sticky="w")
-
     password_label = tk.Label(frame, text="Enter Your Password:", font=("Arial", 12), bg="#f0f0f0")
     password_label.grid(row=3, column=0, sticky="w", padx=10, pady=(5, 5))
 
     password_field = tk.Entry(frame, justify='left', bg="#f7f7f7", font=("Arial", 12), show="*", width=40, bd=1, relief=tk.SOLID)
     password_field.grid(row=4, column=0,sticky= 'w' ,pady=10, padx=10)
-
-    password_match_label = tk.Label(frame, text='', font=("Arial", 10), bg="#f0f0f0")
-    password_match_label.grid(row=4, column=1, sticky="w")
 
     toggle_button = ctk.CTkButton(frame, text="Show", font=("Arial", 16,),text_color="black", bg_color="#f0f0f0", fg_color="#f0f0f0", width=50, command=toggle_password_visibility)
     toggle_button.grid(row=4, column=2)
