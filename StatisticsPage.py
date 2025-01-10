@@ -27,7 +27,7 @@ def StatisticsPage():
     
     root = tk.Tk()
     root.title("Main Menu")
-    root.geometry("800x600")
+    root.geometry("800x750")
     root.configure(bg="#f0f0f0")
 
     # UI for the logged-in page
