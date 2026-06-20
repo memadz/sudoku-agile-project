@@ -1,4 +1,4 @@
-# Group 14 - Agile Project
+# Group 14 - Sudoku Agile Project
 
 
 
